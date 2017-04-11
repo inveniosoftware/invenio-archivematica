@@ -22,38 +22,28 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-"""Invenio 3 module to connect Invenio to Archivematica."""
+"""API for Invenio 3 module to connect Invenio to Archivematica."""
 
-# TODO: This is an example file. Remove it if you do not need it, including
-# the templates and static folders as well as the test case.
+from flask import current_app
 
-from __future__ import absolute_import, print_function
-
-from flask import Blueprint, render_template
-from flask_babelex import gettext as _
-
-from .api import create_accessioned_id
-
-blueprint = Blueprint(
-    'invenio_archivematica',
-    __name__,
-    template_folder='templates',
-    static_folder='static',
-    url_prefix="/oais"
-)
+from invenio_pidstore.resolver import Resolver
+from invenio_records.api import Record
 
 
-@blueprint.route("/")
-def index():
-    """Basic view."""
-    return render_template(
-        "invenio_archivematica/index.html",
-        module_name=_('Invenio-Archivematica'))
+def create_accessioned_id(record_pid, pid_type):
+    """Create an accessioned ID to store the record in Archivematica.
 
-
-@blueprint.route("/test/<string:pid>/")
-def test(pid):
-    """Test view."""
-    return """<DOCTYPE html><html><head></head><body>
-    <h1>{}</h1>
-    </body></html>""".format(create_accessioned_id(pid, 'recid'))
+    :param record_pid: the PID of the record
+    :type record_pid: str
+    :param pid_type: the type of the PID ('recid'...)
+    :type pid_type: str
+    :returns: the created ID
+    :rtype: str
+    """
+    resolver = Resolver(pid_type=pid_type, getter=Record.get_record)
+    pid, record = resolver.resolve(record_pid)
+    return "{service}-{pid_type}-{pid}-{version}".format(
+        service=current_app.config['ARCHIVEMATICA_ORGANIZATION_NAME'],
+        pid_type=pid_type,
+        pid=record_pid,
+        version=record.revision_id)

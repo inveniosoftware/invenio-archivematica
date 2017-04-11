@@ -24,11 +24,8 @@
 
 """Invenio 3 module to connect Invenio to Archivematica."""
 
-# TODO: This is an example file. Remove it if your package does not use any
-# extra configuration variables.
-
-ARCHIVEMATICA_DEFAULT_VALUE = 'foobar'
-"""Default value for the application."""
-
 ARCHIVEMATICA_BASE_TEMPLATE = 'invenio_archivematica/base.html'
 """Default base template for the demo page."""
+
+ARCHIVEMATICA_ORGANIZATION_NAME = 'CERN'
+"""Organization name setup in Archivematica's dashboard."""

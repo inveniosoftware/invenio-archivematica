@@ -22,38 +22,26 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-"""Invenio 3 module to connect Invenio to Archivematica."""
+"""Test the API."""
 
-# TODO: This is an example file. Remove it if you do not need it, including
-# the templates and static folders as well as the test case.
+import uuid
 
-from __future__ import absolute_import, print_function
+from invenio_pidstore.models import PersistentIdentifier, PIDStatus
+from invenio_records.api import Record
 
-from flask import Blueprint, render_template
-from flask_babelex import gettext as _
-
-from .api import create_accessioned_id
-
-blueprint = Blueprint(
-    'invenio_archivematica',
-    __name__,
-    template_folder='templates',
-    static_folder='static',
-    url_prefix="/oais"
-)
+from invenio_archivematica import api
 
 
-@blueprint.route("/")
-def index():
-    """Basic view."""
-    return render_template(
-        "invenio_archivematica/index.html",
-        module_name=_('Invenio-Archivematica'))
-
-
-@blueprint.route("/test/<string:pid>/")
-def test(pid):
-    """Test view."""
-    return """<DOCTYPE html><html><head></head><body>
-    <h1>{}</h1>
-    </body></html>""".format(create_accessioned_id(pid, 'recid'))
+def test_create_accessioned_id(app):
+    """Test ``create_accessioned_id`` function."""
+    # First, we create a record
+    recid = uuid.uuid4()
+    PersistentIdentifier.create(
+        'recid',
+        '99999999',
+        object_type='rec',
+        object_uuid=recid,
+        status=PIDStatus.REGISTERED)
+    Record.create({'title': 'record test'}, recid)
+    accessioned_id = api.create_accessioned_id('99999999', 'recid')
+    assert accessioned_id == 'CERN-recid-99999999-0'
