@@ -26,3 +26,9 @@ Usage
 =====
 
 .. automodule:: invenio_archivematica
+
+Customization
+=============
+
+.. automodule:: invenio_archivematica.factories
+    :members:

@@ -34,7 +34,9 @@ import pytest
 from flask import Flask
 from flask_babelex import Babel
 
-from invenio_db import InvenioDB, db
+from invenio_db import db as db_
+from invenio_db import InvenioDB
+from invenio_files_rest import InvenioFilesREST
 from invenio_pidstore import InvenioPIDStore
 
 from sqlalchemy_utils.functions import create_database, database_exists, \
@@ -63,17 +65,25 @@ def base_app(instance_path):
     )
     Babel(app_)
     InvenioArchivematica(app_)
-    InvenioDB(app_)
     return app_
 
 
 @pytest.yield_fixture()
 def app(base_app):
-    """Flask application fixture."""
+    """Flask full application fixture."""
+    InvenioDB(base_app)
+    InvenioFilesREST(base_app)
+    InvenioPIDStore(base_app)
     with base_app.app_context():
-        if not database_exists(str(db.engine.url)):
-            create_database(str(db.engine.url))
-        db.create_all()
         yield base_app
-        db.session.remove()
-        db.drop_all()
+
+
+@pytest.yield_fixture()
+def db(app):
+    """Flask database fixture."""
+    if not database_exists(str(db_.engine.url)):
+        create_database(str(db_.engine.url))
+    db_.create_all()
+    yield db_
+    db_.session.remove()
+    db_.drop_all()

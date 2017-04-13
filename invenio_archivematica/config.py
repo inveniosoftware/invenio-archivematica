@@ -27,5 +27,22 @@
 ARCHIVEMATICA_BASE_TEMPLATE = 'invenio_archivematica/base.html'
 """Default base template for the demo page."""
 
+ARCHIVEMATICA_TRANSFER_FACTORY = 'invenio_archivematica.factories.transfer'
+"""The factory to do the transfers of files to the dashboard.
+
+See :py:func:`invenio_archivematica.factories.transfer_cp`
+and :py:data:`invenio_archivematica.config.ARCHIVEMATICA_TRANSFER_FOLDER`
+for more information.
+"""
+
 ARCHIVEMATICA_ORGANIZATION_NAME = 'CERN'
 """Organization name setup in Archivematica's dashboard."""
+
+ARCHIVEMATICA_TRANSFER_FOLDER = '.'
+"""The transfer folder setup in the dashboard.
+
+If you use a custom factory to do the transfer, you can put whatever you want
+here, it will be passed to your factory. See
+:py:func:`invenio_archivematica.factories.transfer_cp` and
+:py:data:`invenio_archivematica.config.ARCHIVEMATICA_TRANSFER_FACTORY`.
+"""
