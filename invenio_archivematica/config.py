@@ -35,6 +35,13 @@ and :py:data:`invenio_archivematica.config.ARCHIVEMATICA_TRANSFER_FOLDER`
 for more information.
 """
 
+ARCHIVEMATICA_ISARCHIVABLE_FACTORY = 'invenio_archivematica.' \
+                                     'factories.is_archivable'
+"""The factory that is used to know if the record should be archived or not.
+
+See :py:func:`invenio_archivematica.factories.is_archivable`.
+"""
+
 ARCHIVEMATICA_ORGANIZATION_NAME = 'CERN'
 """Organization name setup in Archivematica's dashboard."""
 

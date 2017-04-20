@@ -61,3 +61,11 @@ def transfer_cp(uuid, destination):
     for fileobj in record.files:
         copyfile(fileobj.file.storage().fileurl,
                  join(dir_name, fileobj.key))
+
+def is_archivable(record):
+    """Tell if the given record should be archived or not.
+
+    If this function returns True, the record will be archived later.
+    Otherwise, the record will never get archived.
+    """
+    return True

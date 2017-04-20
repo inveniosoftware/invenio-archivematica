@@ -27,8 +27,10 @@
 from __future__ import absolute_import, print_function
 
 from flask_babelex import gettext as _
+from invenio_records.signals import after_record_insert, after_record_update
 
 from . import config
+from .listeners import listener_record_created, listener_record_updated
 from .views import blueprint
 
 
@@ -43,6 +45,7 @@ class InvenioArchivematica(object):
         _('A translation string')
         if app:
             self.init_app(app)
+            self.init_listeners()
 
     def init_app(self, app):
         """Flask application initialization."""
@@ -61,3 +64,8 @@ class InvenioArchivematica(object):
         for k in dir(config):
             if k.startswith('ARCHIVEMATICA_'):
                 app.config.setdefault(k, getattr(config, k))
+
+    def init_listeners(self):
+        """Register the listener to invenio_record's signals."""
+        after_record_insert.connect(listener_record_created)
+        after_record_update.connect(listener_record_updated)
