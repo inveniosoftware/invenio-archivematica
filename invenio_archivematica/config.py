@@ -36,10 +36,10 @@ for more information.
 """
 
 ARCHIVEMATICA_ISARCHIVABLE_FACTORY = 'invenio_archivematica.' \
-                                     'factories.is_archivable'
+                                     'factories.is_archivable_all'
 """The factory that is used to know if the record should be archived or not.
 
-See :py:func:`invenio_archivematica.factories.is_archivable`.
+See :py:func:`invenio_archivematica.factories.is_archivable_all`.
 """
 
 ARCHIVEMATICA_ORGANIZATION_NAME = 'CERN'

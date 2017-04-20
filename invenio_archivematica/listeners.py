@@ -36,22 +36,28 @@ def listener_record_created(record, *args, **kwargs):
     """Create an entry in the database when a record is created."""
     imp = current_app.config['ARCHIVEMATICA_ISARCHIVABLE_FACTORY']
     is_archivable = import_string(imp) if imp else None
-    if is_archivable and is_archivable(record):
-        Archive.create(record.model)
+    ark = Archive.create(record.model)
+    if not is_archivable or not is_archivable(record):
+        ark.status = ArchiveStatus.IGNORED
+        db.session.add(ark)
 
 
 def listener_record_updated(record, *args, **kwargs):
     """Create an entry in the database when a record is updated."""
     imp = current_app.config['ARCHIVEMATICA_ISARCHIVABLE_FACTORY']
     is_archivable = import_string(imp) if imp else None
-    if not is_archivable or not is_archivable(record):
-        return
     # we test if the archive object already exists
     try:
         ark = Archive.query.filter_by(record_id=record.id).one()
+    # otherwise we create it
+    except NoResultFound:
+        ark = Archive.create(record.model)
+    # we check if we need to archive it or not
+    if is_archivable and is_archivable(record):
         if ark.status != ArchiveStatus.NEW:
             ark.status = ArchiveStatus.NEW
             db.session.add(ark)
-    # otherwise we create it
-    except NoResultFound:
-        Archive.create(record.model)
+    else:
+        if ark.status != ArchiveStatus.IGNORED:
+            ark.status = ArchiveStatus.IGNORED
+            db.session.add(ark)

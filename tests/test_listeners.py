@@ -26,15 +26,27 @@
 
 import uuid
 
+import pytest
 from invenio_records.api import Record
 
 from invenio_archivematica.listeners import listener_record_created, \
     listener_record_updated
 from invenio_archivematica.models import Archive, ArchiveStatus
 
+testdata = [
+    ('invenio_archivematica.factories.is_archivable_all',
+     ArchiveStatus.NEW),
+    ('invenio_archivematica.factories.is_archivable_none',
+     ArchiveStatus.IGNORED)
+]
 
-def test_listener_record_created_updated(db):
+
+@pytest.mark.parametrize("conf,expected_status", testdata)
+def test_listeners(conf, expected_status, app, db):
     """Test listener_record_created and listener_record_updated functions."""
+    # first we change the is_archivable function
+    app.config['ARCHIVEMATICA_ISARCHIVABLE_FACTORY'] = conf
+
     assert Archive.query.count() == 0
     # let's create a record
     recid = uuid.uuid4()
@@ -44,9 +56,9 @@ def test_listener_record_created_updated(db):
     assert Archive.query.count() == 1
     ark = Archive.query.filter_by(record_id=recid).one()
     assert ark.record == rec.model
-    assert ark.status == ArchiveStatus.NEW
+    assert ark.status == expected_status
 
-    # we simulate that the record has been archived
+    # we simulate that the record has been archived anyway :p
     ark.status = ArchiveStatus.REGISTERED
     db.session.add(ark)
     # now we update the record
@@ -55,7 +67,7 @@ def test_listener_record_created_updated(db):
     db.session.commit()
     assert Archive.query.count() == 1
     ark = Archive.query.filter_by(record_id=recid).one()
-    assert ark.status == ArchiveStatus.NEW
+    assert ark.status == expected_status
 
     # we delete the Archive object and update the record
     db.session.delete(ark)
@@ -65,3 +77,5 @@ def test_listener_record_created_updated(db):
     rec.commit()
     db.session.commit()
     assert Archive.query.count() == 1
+    ark = Archive.query.filter_by(record_id=recid).one()
+    assert ark.status == expected_status

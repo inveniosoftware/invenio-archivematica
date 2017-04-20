@@ -51,21 +51,33 @@ def transfer_cp(uuid, destination):
         It needs to be a absolute path to a folder
     """
     record = Record.get_record(uuid)
-    pid = PersistentIdentifier.get_by_object("recid", "rec", uuid)
+    pid = PersistentIdentifier.get_by_object('recid', 'rec', uuid)
     dir_name = join(destination,
                     create_accessioned_id(pid.pid_value, 'recid'))
     try:
         mkdir(dir_name)
-    except:
+    except OSError:
         pass
     for fileobj in record.files:
         copyfile(fileobj.file.storage().fileurl,
                  join(dir_name, fileobj.key))
 
+<<<<<<< HEAD
 def is_archivable(record):
+=======
+
+def is_archivable_all(record):
+>>>>>>> API: functions to archive a record
     """Tell if the given record should be archived or not.
 
     If this function returns True, the record will be archived later.
     Otherwise, the record will never get archived.
+
+    This function archive all the records.
     """
     return True
+
+
+def is_archivable_none(record):
+    """Archive no records."""
+    return False
