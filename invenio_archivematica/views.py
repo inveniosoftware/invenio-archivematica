@@ -32,7 +32,7 @@ from __future__ import absolute_import, print_function
 from flask import Blueprint, render_template
 from flask_babelex import gettext as _
 
-from .api import create_accessioned_id
+from invenio_archivematica.api import create_accessioned_id
 
 blueprint = Blueprint(
     'invenio_archivematica',

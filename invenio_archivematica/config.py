@@ -27,7 +27,7 @@
 ARCHIVEMATICA_BASE_TEMPLATE = 'invenio_archivematica/base.html'
 """Default base template for the demo page."""
 
-ARCHIVEMATICA_TRANSFER_FACTORY = 'invenio_archivematica.factories.transfer'
+ARCHIVEMATICA_TRANSFER_FACTORY = 'invenio_archivematica.factories.transfer_cp'
 """The factory to do the transfers of files to the dashboard.
 
 See :py:func:`invenio_archivematica.factories.transfer_cp`

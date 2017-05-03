@@ -60,6 +60,8 @@ setup_requires = [
 
 install_requires = [
     'Flask-BabelEx>=0.9.2',
+    'Flask-CeleryExt>=0.2.2',
+    'alembic>=0.9.1',
     'invenio-db>=1.0.0b3',
     'invenio-records>=1.0.0b1',
     'invenio-records-files>=1.0.0a8',
@@ -103,7 +105,9 @@ setup(
         # 'invenio_base.api_apps': [],
         # 'invenio_base.api_blueprints': [],
         # 'invenio_base.blueprints': [],
-        # 'invenio_celery.tasks': [],
+        'invenio_celery.tasks': [
+            'invenio_archivematica = invenio_archivematica.tasks'
+        ],
         # 'invenio_db.models': [],
         # 'invenio_pidstore.minters': [],
         # 'invenio_records.jsonresolver': [],

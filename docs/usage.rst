@@ -30,5 +30,20 @@ Usage
 Customization
 =============
 
+Factories
+---------
+
 .. automodule:: invenio_archivematica.factories
     :members:
+
+Tasks
+-----
+
+.. automodule:: invenio_archivematica.tasks
+    :members:
+
+.... autotask:: invenio_archivematica.tasks.archive_record_start_transfer
+.... autotask:: invenio_archivematica.tasks.archive_record_start_transfer
+.... autotask:: invenio_archivematica.tasks.archive_record_start_transfer
+.... autotask:: invenio_archivematica.tasks.archive_record_start_transfer
+

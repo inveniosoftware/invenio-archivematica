@@ -27,3 +27,4 @@ Authors
 Invenio 3 module to connect Invenio to Archivematica
 
 - CERN <info@inveniosoftware.org>
+- Rémi Ducceschi <remi.ducceschi@gmail.com>

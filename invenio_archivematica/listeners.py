@@ -29,7 +29,7 @@ from invenio_db import db
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.utils import import_string
 
-from .models import Archive, ArchiveStatus
+from invenio_archivematica.models import Archive, ArchiveStatus
 
 
 def listener_record_created(record, *args, **kwargs):

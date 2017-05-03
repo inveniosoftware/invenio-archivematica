@@ -57,7 +57,7 @@ def test_transfer_cp(db):
     # we add a file to the record
     bucket = Bucket.create()
     content = b'Aaah! A headcrab!!!\n'
-    record_buckets = RecordsBuckets.create(record=record.model, bucket=bucket)
+    RecordsBuckets.create(record=record.model, bucket=bucket)
     record.files['crab.txt'] = BytesIO(content)
     # test!
     rec_dir = join(tmppath, create_accessioned_id('1337', 'recid'))
@@ -65,6 +65,41 @@ def test_transfer_cp(db):
     assert isdir(rec_dir)
     assert isfile(join(rec_dir, 'crab.txt'))
     with open(join(rec_dir, 'crab.txt'), "rb") as f:
+        assert f.read() == content
+    # finalization
+    rmtree(tmppath)
+
+
+def test_transfer_rsync(db):
+    """Test factories.transfer_rsync function."""
+    # first we create a record
+    recid = uuid.uuid4()
+    PersistentIdentifier.create(
+        'recid',
+        '42',
+        object_type='rec',
+        object_uuid=recid,
+        status=PIDStatus.REGISTERED)
+    record = Record.create({'title': 'lambda'}, recid)
+    # we setup a file storage
+    tmppath = tempfile.mkdtemp()
+    db.session.add(Location(name='default', uri=tmppath, default=True))
+    db.session.commit()
+    # we add a file to the record
+    bucket = Bucket.create()
+    content = b'Its on my head!!!\n'
+    RecordsBuckets.create(record=record.model, bucket=bucket)
+    record.files['zombie.txt'] = BytesIO(content)
+    # test!
+    config = {
+        'destination': tmppath,
+        'args': '-az'
+    }
+    rec_dir = join(tmppath, create_accessioned_id('42', 'recid'))
+    factories.transfer_rsync(record.id, config)
+    assert isdir(rec_dir)
+    assert isfile(join(rec_dir, 'zombie.txt'))
+    with open(join(rec_dir, 'zombie.txt'), "rb") as f:
         assert f.read() == content
     # finalization
     rmtree(tmppath)

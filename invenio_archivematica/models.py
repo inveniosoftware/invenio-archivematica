@@ -24,7 +24,6 @@
 
 """Archive models."""
 
-import uuid
 from enum import Enum
 
 from flask_babelex import gettext
@@ -58,7 +57,7 @@ class ArchiveStatus(Enum):
     REGISTERED = 'R'
     """The record has been archived."""
 
-    FALED = 'F'
+    FAILED = 'F'
     """The record has not been archived because of an error."""
 
     IGNORED = 'I'

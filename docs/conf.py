@@ -51,7 +51,11 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
+    'celery.contrib.sphinx',
 ]
+
+# Remove default Celery sphinx task prefix
+celery_task_prefix = ''
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -338,7 +342,7 @@ texinfo_documents = [
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     'python': ('https://docs.python.org/', None),
-    'invenio_records': ('https://invenio-records.readthedocs.io/en/latest/', None)
+    'invenio_records': ('https://invenio-records.readthedocs.io/en/latest/', None),
     # TODO: Configure external documentation references, eg:
     # 'Flask-Admin': ('https://flask-admin.readthedocs.io/en/latest/', None),
 }
