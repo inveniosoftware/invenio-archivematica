@@ -123,12 +123,8 @@ def transfer_rsync(uuid, config):
         rmtree(ftmp)
     return ret
 
-<<<<<<< HEAD
-def is_archivable(record):
-=======
 
 def is_archivable_all(record):
->>>>>>> API: functions to archive a record
     """Tell if the given record should be archived or not.
 
     If this function returns True, the record will be archived later.

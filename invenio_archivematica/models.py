@@ -30,6 +30,7 @@ from flask_babelex import gettext
 from invenio_db import db
 from invenio_records.models import RecordMetadata
 from speaklater import make_lazy_gettext
+from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy_utils.types import ChoiceType, UUIDType
 
 _ = make_lazy_gettext(lambda: gettext)
@@ -139,3 +140,18 @@ class Archive(db.Model):
                   aip_id=aip_id)
         db.session.add(ark)
         return ark
+
+    @classmethod
+    def get_from_record(cls, uuid):
+        """Return the Archive object associated to the given record.
+
+        It tries to get the Archive object associated to the record. If it
+        exists, it returns it, otherwise it returns None.
+        :param uuid: the uuid of the record
+        :type uuid: str
+        :rtype: :py:class:`invenio_archivematica.models.Archive` or None
+        """
+        try:
+            return cls.query.filter_by(record_id=uuid).one()
+        except NoResultFound:
+            return None

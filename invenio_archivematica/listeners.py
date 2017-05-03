@@ -47,10 +47,9 @@ def listener_record_updated(record, *args, **kwargs):
     imp = current_app.config['ARCHIVEMATICA_ISARCHIVABLE_FACTORY']
     is_archivable = import_string(imp) if imp else None
     # we test if the archive object already exists
-    try:
-        ark = Archive.query.filter_by(record_id=record.id).one()
+    ark = Archive.get_from_record(record.id)
     # otherwise we create it
-    except NoResultFound:
+    if not ark:
         ark = Archive.create(record.model)
     # we check if we need to archive it or not
     if is_archivable and is_archivable(record):

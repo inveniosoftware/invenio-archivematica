@@ -44,13 +44,13 @@ def test_ArchiveStatus():
 def test_Archive(db):
     """Test the Archive model class."""
     assert Archive.query.count() == 0
-    # we create a record, it will automatically create an Archive object
+    # we create a record, it will automatically create an Archive via signals
     recid = uuid.uuid4()
     rec = Record.create({'title': 'This is a fake!'}, recid)
     db.session.commit()
 
     assert Archive.query.count() == 1
-    ark = Archive.query.filter_by(record_id=recid).one()
+    ark = Archive.get_from_record(recid)
     assert ark.record == rec.model
     assert ark.status == ArchiveStatus.NEW
     assert ark.aip_accessioned_id is None
@@ -61,7 +61,9 @@ def test_Archive(db):
     ark.aip_id = recid
     db.session.add(ark)
     db.session.commit()
-    ark = Archive.query.filter_by(record_id=recid).one()
+    ark = Archive.get_from_record(recid)
     assert ark.status == ArchiveStatus.REGISTERED
     assert ark.aip_accessioned_id == '08'
     assert ark.aip_id == recid
+    # we try to get a non existing record
+    assert Archive.get_from_record(uuid.uuid4()) is None

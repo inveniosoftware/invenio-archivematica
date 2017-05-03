@@ -54,7 +54,7 @@ def test_listeners(conf, expected_status, app, db):
     db.session.commit()
 
     assert Archive.query.count() == 1
-    ark = Archive.query.filter_by(record_id=recid).one()
+    ark = Archive.get_from_record(recid)
     assert ark.record == rec.model
     assert ark.status == expected_status
 
@@ -66,7 +66,7 @@ def test_listeners(conf, expected_status, app, db):
     rec.commit()
     db.session.commit()
     assert Archive.query.count() == 1
-    ark = Archive.query.filter_by(record_id=recid).one()
+    ark = Archive.get_from_record(recid)
     assert ark.status == expected_status
 
     # we delete the Archive object and update the record
@@ -77,5 +77,5 @@ def test_listeners(conf, expected_status, app, db):
     rec.commit()
     db.session.commit()
     assert Archive.query.count() == 1
-    ark = Archive.query.filter_by(record_id=recid).one()
+    ark = Archive.get_from_record(recid)
     assert ark.status == expected_status
