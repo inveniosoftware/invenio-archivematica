@@ -33,12 +33,10 @@ import tempfile
 import pytest
 from flask import Flask
 from flask_babelex import Babel
-
 from invenio_db import db as db_
 from invenio_db import InvenioDB
 from invenio_files_rest import InvenioFilesREST
 from invenio_pidstore import InvenioPIDStore
-
 from sqlalchemy_utils.functions import create_database, database_exists, \
     drop_database
 
@@ -87,3 +85,4 @@ def db(app):
     yield db_
     db_.session.remove()
     db_.drop_all()
+    drop_database(str(db_.engine.url))

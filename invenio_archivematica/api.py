@@ -25,7 +25,6 @@
 """API for Invenio 3 module to connect Invenio to Archivematica."""
 
 from flask import current_app
-
 from invenio_pidstore.resolver import Resolver
 from invenio_records.api import Record
 

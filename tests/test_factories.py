@@ -26,7 +26,6 @@
 
 import tempfile
 import uuid
-
 from os.path import isdir, isfile, join
 from shutil import rmtree
 
@@ -34,7 +33,6 @@ from invenio_files_rest.models import Bucket, Location
 from invenio_pidstore.models import PersistentIdentifier, PIDStatus
 from invenio_records_files.api import Record
 from invenio_records_files.models import RecordsBuckets
-
 from six import BytesIO
 
 from invenio_archivematica import factories
@@ -66,7 +64,7 @@ def test_transfer_cp(db):
     factories.transfer_cp(record.id, tmppath)
     assert isdir(rec_dir)
     assert isfile(join(rec_dir, 'crab.txt'))
-    with open(join(rec_dir, 'crab.txt'), "r") as f:
+    with open(join(rec_dir, 'crab.txt'), "rb") as f:
         assert f.read() == content
     # finalization
     rmtree(tmppath)
