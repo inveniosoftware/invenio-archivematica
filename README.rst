@@ -44,7 +44,9 @@ Invenio 3 module to connect Invenio to Archivematica
 
 *This is an experimental developer preview release.*
 
-TODO: Please provide feature overview of module
+Archivematica is an open-source software used to create digital archives. The
+goal of this module is to create a link between Invenio and Archivematica, so
+Invenio can send records to Archivematica to archive them.
 
 Further documentation is available on
 https://invenio-archivematica.readthedocs.io/

@@ -29,8 +29,6 @@ from os import mkdir
 from os.path import join
 from shutil import copyfile
 
-from flask import current_app
-
 from invenio_pidstore.models import PersistentIdentifier
 from invenio_records_files.api import Record
 

@@ -22,27 +22,18 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-# TODO: Generate this manifest file by running the following commands:
-#
-#  git init
-#  git add -A
-#  pip install -e .[all]
-#  check-manifest -u
-
-# Check manifest will not automatically add these two files:
-include .dockerignore
-include .editorconfig
-include .tx/config
-prune docs/_build
-recursive-include invenio_archivematica *.po *.pot *.mo
-
-# added by check_manifest.py
 include *.rst
 include *.sh
 include *.txt
+include .dockerignore
+include .editorconfig
+include .tx/config
 include LICENSE
+include MAINTAINERS
 include babel.ini
+include docs/requirements.txt
 include pytest.ini
+prune docs/_build
 recursive-include docs *.bat
 recursive-include docs *.py
 recursive-include docs *.rst
@@ -51,4 +42,5 @@ recursive-include docs Makefile
 recursive-include examples *.py
 recursive-include examples *.sh
 recursive-include invenio_archivematica *.html
+recursive-include invenio_archivematica *.mo *.po *.pot
 recursive-include tests *.py

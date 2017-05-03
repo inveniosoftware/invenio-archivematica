@@ -45,7 +45,7 @@ blueprint = Blueprint(
 
 @blueprint.route("/")
 def index():
-    """Basic view."""
+    """Show the index."""
     return render_template(
         "invenio_archivematica/index.html",
         module_name=_('Invenio-Archivematica'))
@@ -53,7 +53,7 @@ def index():
 
 @blueprint.route("/test/<string:pid>/")
 def test(pid):
-    """Test view."""
+    """Show a test page."""
     return """<DOCTYPE html><html><head></head><body>
     <h1>{}</h1>
     </body></html>""".format(create_accessioned_id(pid, 'recid'))
