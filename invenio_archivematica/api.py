@@ -29,7 +29,7 @@ from invenio_pidstore.resolver import Resolver
 from invenio_records.api import Record
 
 from invenio_archivematica.tasks import oais_fail_transfer, \
-    oais_finish_transfer, oais_start_transfer
+    oais_finish_transfer, oais_process_transfer, oais_start_transfer
 
 
 def create_accessioned_id(record_pid, pid_type):
@@ -64,6 +64,17 @@ def start_transfer(record, accessioned_id=''):
     :type accessioned_id: str
     """
     oais_start_transfer.delay(record.id, accessioned_id)
+
+
+def process_transfer(record):
+    """Create the archive for a record.
+
+    Process the transfer of the record in asynchronous mode. See
+    :py:mod:`invenio_archivematica.tasks`
+    :param record: the record to archive
+    :type record: :py:class:`invenio_records.api.Record`
+    """
+    oais_process_transfer.delay(record.id)
 
 
 def finish_transfer(record, aip_id):

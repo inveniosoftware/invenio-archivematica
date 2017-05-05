@@ -32,7 +32,8 @@ from invenio_records.api import Record
 
 from invenio_archivematica.models import Archive, ArchiveStatus
 from invenio_archivematica.tasks import archive_new_records, \
-    oais_fail_transfer, oais_finish_transfer, oais_start_transfer
+    oais_fail_transfer, oais_finish_transfer, oais_process_transfer, \
+    oais_start_transfer
 
 
 def test_oais_start_transfer(db):
@@ -53,7 +54,7 @@ def test_oais_start_transfer(db):
     assert Archive.query.count() == 1
     ark = Archive.get_from_record(recid)
     assert ark.record == rec.model
-    assert ark.status == ArchiveStatus.PROCESSING
+    assert ark.status == ArchiveStatus.WAITING
     assert ark.aip_accessioned_id == '1991'
     # we try the case where no archive exist
     db.session.delete(ark)
@@ -62,8 +63,22 @@ def test_oais_start_transfer(db):
     oais_start_transfer(recid, '1991')
     assert Archive.query.count() == 1
     assert ark.record == rec.model
-    assert ark.status == ArchiveStatus.PROCESSING
+    assert ark.status == ArchiveStatus.WAITING
     assert ark.aip_accessioned_id == '1991'
+
+
+def test_oais_process_transfer(db):
+    """Test the oais_process_transfer function."""
+    # let's create a record
+    recid = uuid.uuid4()
+    aipid = uuid.uuid4()
+    rec = Record.create({'title': 'Job finished'}, recid)
+    db.session.commit()
+    # we fail the transfer
+    oais_process_transfer(recid)
+    assert Archive.query.count() == 1
+    ark = Archive.get_from_record(recid)
+    assert ark.status == ArchiveStatus.PROCESSING
 
 
 def test_oais_finish_transfer(db):
@@ -123,7 +138,7 @@ def test_archive_new_records(db):
     assert len(arks) == 2
     for ark in arks:
         if ark.record_id == recid1:
-            assert ark.status == ArchiveStatus.PROCESSING
+            assert ark.status == ArchiveStatus.WAITING
             # we update the archive so it will be ignored in what follows
             ark.status = ArchiveStatus.IGNORED
             db.session.commit()
@@ -138,4 +153,4 @@ def test_archive_new_records(db):
         if ark.record_id == recid1:
             assert ark.status == ArchiveStatus.IGNORED
         else:
-            assert ark.status == ArchiveStatus.PROCESSING
+            assert ark.status == ArchiveStatus.WAITING

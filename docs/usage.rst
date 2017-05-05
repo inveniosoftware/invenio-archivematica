@@ -42,8 +42,9 @@ Tasks
 .. automodule:: invenio_archivematica.tasks
     :members:
 
-.... autotask:: invenio_archivematica.tasks.archive_record_start_transfer
-.... autotask:: invenio_archivematica.tasks.archive_record_start_transfer
-.... autotask:: invenio_archivematica.tasks.archive_record_start_transfer
-.... autotask:: invenio_archivematica.tasks.archive_record_start_transfer
+.... autotask:: invenio_archivematica.tasks.oais_start_transfer
+.... autotask:: invenio_archivematica.tasks.oais_process_transfer
+.... autotask:: invenio_archivematica.tasks.oais_finish_transfer
+.... autotask:: invenio_archivematica.tasks.oais_fail_transfer
+.... autotask:: invenio_archivematica.tasks.archive_new_records
 

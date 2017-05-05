@@ -37,7 +37,7 @@ from werkzeug.utils import import_string
 
 from invenio_archivematica.models import Archive, ArchiveStatus
 from invenio_archivematica.signals import oais_transfer_failed, \
-    oais_transfer_finished, oais_transfer_started
+    oais_transfer_finished, oais_transfer_processing, oais_transfer_started
 
 
 @shared_task(ignore_result=True)
@@ -65,7 +65,7 @@ def oais_start_transfer(rec_uuid, accessioned_id=''):
         ark = Archive.create(record.model)
     if accessioned_id:
         ark.aip_accessioned_id = accessioned_id
-    ark.status = ArchiveStatus.PROCESSING
+    ark.status = ArchiveStatus.WAITING
     db.session.add(ark)
     # we start the transfer
     imp = current_app.config['ARCHIVEMATICA_TRANSFER_FACTORY']
@@ -73,6 +73,27 @@ def oais_start_transfer(rec_uuid, accessioned_id=''):
     transfer(record.id, current_app.config['ARCHIVEMATICA_TRANSFER_FOLDER'])
 
     oais_transfer_started.send(record)
+
+
+@shared_task(ignore_result=True)
+def oais_process_transfer(rec_uuid):
+    """Mark the transfer in progress.
+
+    This function should be called if the transfer is processing. See
+    :py:func:`invenio_archivematica.tasks.archive_record_start_transfer`.
+
+    The signal
+    :py:data:`invenio_archivematica.signals.oais_transfer_processing`
+    is called with the record as function parameter.
+
+    :param rec_uuid: the UUID of the record
+    :type rec_uuid: str
+    """
+    ark = Archive.get_from_record(rec_uuid)
+    ark.status = ArchiveStatus.PROCESSING
+    db.session.add(ark)
+
+    oais_transfer_processing.send(Record(ark.record.json, ark.record))
 
 
 @shared_task(ignore_result=True)

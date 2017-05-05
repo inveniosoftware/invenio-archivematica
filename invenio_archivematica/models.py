@@ -38,6 +38,7 @@ _ = make_lazy_gettext(lambda: gettext)
 
 ARCHIVE_STATUS_TITLES = {
     'NEW': _('New'),
+    'WAITING': _('Waiting'),
     'PROCESSING': _('Processing'),
     'REGISTERED': _('Registered'),
     'FAILED': _('Failed'),
@@ -51,6 +52,9 @@ class ArchiveStatus(Enum):
 
     NEW = 'N'
     """The record has been created or updated, but not yet archived."""
+
+    WAITING = 'W'
+    """The record has been transfered, and is waiting for processing."""
 
     PROCESSING = 'P'
     """The record is currently being archived."""
