@@ -24,15 +24,19 @@
 
 """Invenio 3 module to connect Invenio to Archivematica."""
 
-# TODO: This is an example file. Remove it if you do not need it, including
-# the templates and static folders as well as the test case.
-
 from __future__ import absolute_import, print_function
 
-from flask import Blueprint, render_template
-from flask_babelex import gettext as _
+from functools import partial
 
-from invenio_archivematica.api import create_accessioned_id
+from flask import Blueprint, abort, jsonify, render_template, request
+from flask_babelex import gettext as _
+from invenio_pidstore.errors import PIDDoesNotExistError
+from invenio_pidstore.resolver import Resolver
+from invenio_records.api import Record
+
+from invenio_archivematica.api import create_accessioned_id, fail_transfer, \
+    finish_transfer, process_transfer
+from invenio_archivematica.models import ArchiveStatus
 
 blueprint = Blueprint(
     'invenio_archivematica',
@@ -57,3 +61,42 @@ def test(pid):
     return """<DOCTYPE html><html><head></head><body>
     <h1>{}</h1>
     </body></html>""".format(create_accessioned_id(pid, 'recid'))
+
+
+@blueprint.route("/set_status/<int:pid>/", methods=['POST'])
+def set_status(pid):
+    """Changes the status of an AIP.
+
+    This needs to receive JSON with `status` key, and depending on the status,
+    extra keys like `aip_id`...
+    """
+    try:
+        resolver = Resolver(pid_type='recid', getter=Record.get_record)
+        pid, record = resolver.resolve(pid)
+    except PIDDoesNotExistError:
+        abort(404)
+    try:
+        status = ArchiveStatus(request.values['status'])
+    except KeyError as err:
+        return jsonify(message="No key 'status' in data."), 400
+    except ValueError as err:
+        return jsonify(message=err.message), 400
+
+    functions = {
+        # can't mark as new: done by listeners
+        'NEW': lambda x: "invalid method.",
+        # can't mark as waiting: done by the factory when creating transfers
+        'WAITING': lambda x: "invalid method.",
+        'PROCESSING': process_transfer,
+        'REGISTERED': partial(finish_transfer,
+                              aip_id=request.values.get('aip_id')),
+        'FAILED': fail_transfer,
+        # can't mark as ignored: done by listeners
+        'IGNORED': lambda x: "invalid method.",
+        # TODO
+        'DELETED': lambda x: "invalid method.",
+    }
+    ret = functions[status.name](record)
+    if ret:
+        return jsonify(message=ret), 400
+    return '', 200

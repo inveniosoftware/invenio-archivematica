@@ -63,7 +63,7 @@ def start_transfer(record, accessioned_id=''):
     :py:func:`invenio_archivematica.api.create_accessioned_id`
     :type accessioned_id: str
     """
-    oais_start_transfer.delay(record.id, accessioned_id)
+    oais_start_transfer.delay(str(record.id), accessioned_id)
 
 
 def process_transfer(record):
@@ -74,7 +74,7 @@ def process_transfer(record):
     :param record: the record to archive
     :type record: :py:class:`invenio_records.api.Record`
     """
-    oais_process_transfer.delay(record.id)
+    oais_process_transfer.delay(str(record.id))
 
 
 def finish_transfer(record, aip_id):
@@ -87,7 +87,7 @@ def finish_transfer(record, aip_id):
     :param aip_id: the ID of the created AIP in Archivematica
     :type aip_id: str
     """
-    oais_finish_transfer.delay(record.id, aip_id)
+    oais_finish_transfer.delay(str(record.id), aip_id)
 
 
 def fail_transfer(record):
@@ -98,4 +98,4 @@ def fail_transfer(record):
     :param record: the record to archive
     :type record: :py:class:`invenio_records.api.Record`
     """
-    oais_fail_transfer.delay(record.id)
+    oais_fail_transfer.delay(str(record.id))
