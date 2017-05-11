@@ -47,7 +47,7 @@ def transfer_cp(uuid, config):
     into the config variable
     :py:data:`invenio_archivematica.config.ARCHIVEMATICA_TRANSFER_FACTORY`.
 
-    :param uuid: the id of the record containing files to transfer
+    :param str uuid: the id of the record containing files to transfer
     :param config: the destination folder - this will be what is
         inside the config variable
         :py:data:`invenio_archivematica.config.ARCHIVEMATICA_TRANSFER_FOLDER`.
@@ -92,7 +92,7 @@ def transfer_rsync(uuid, config):
             'args': '-az'
         }
 
-    :param uuid: the id of the record containing files to transfer
+    :param str uuid: the id of the record containing files to transfer
     :param config: the config for rsync
     """
     record = Record.get_record(uuid)

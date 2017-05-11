@@ -35,10 +35,8 @@ from invenio_archivematica.tasks import oais_fail_transfer, \
 def create_accessioned_id(record_pid, pid_type):
     """Create an accessioned ID to store the record in Archivematica.
 
-    :param record_pid: the PID of the record
-    :type record_pid: str
-    :param pid_type: the type of the PID ('recid'...)
-    :type pid_type: str
+    :param str record_pid: the PID of the record
+    :param str pid_type: the type of the PID ('recid'...)
     :returns: the created ID
     :rtype: str
     """
@@ -58,10 +56,9 @@ def start_transfer(record, accessioned_id=''):
     :py:mod:`invenio_archivematica.tasks`
     :param record: the record to archive
     :type record: :py:class:`invenio_records.api.Record`
-    :param accessioned_id: the accessioned ID in archivematica. You can
+    :param str accessioned_id: the accessioned ID in archivematica. You can
     compute it from
     :py:func:`invenio_archivematica.api.create_accessioned_id`
-    :type accessioned_id: str
     """
     oais_start_transfer.delay(str(record.id), accessioned_id)
 
@@ -84,8 +81,7 @@ def finish_transfer(record, aip_id):
     :py:mod:`invenio_archivematica.tasks`
     :param record: the record to archive
     :type record: :py:class:`invenio_records.api.Record`
-    :param aip_id: the ID of the created AIP in Archivematica
-    :type aip_id: str
+    :param str aip_id: the ID of the created AIP in Archivematica
     """
     oais_finish_transfer.delay(str(record.id), aip_id)
 

@@ -51,11 +51,9 @@ def oais_start_transfer(rec_uuid, accessioned_id=''):
     The signal :py:data:`invenio_archivematica.signals.oais_transfer_started`
     is called with the record as function parameter.
 
-    :param rec_uuid: the UUID of the record to archive
-    :type rec_uuid: str
-    :param accessioned_id: the AIP accessioned ID. If not given, it will not
-        be updated
-    :type accessioned_id: str
+    :param str rec_uuid: the UUID of the record to archive
+    :param str accessioned_id: the AIP accessioned ID. If not given, it will
+        not be updated
     """
     # we get the record
     record = Record.get_record(rec_uuid)
@@ -86,8 +84,7 @@ def oais_process_transfer(rec_uuid):
     :py:data:`invenio_archivematica.signals.oais_transfer_processing`
     is called with the record as function parameter.
 
-    :param rec_uuid: the UUID of the record
-    :type rec_uuid: str
+    :param str rec_uuid: the UUID of the record
     """
     ark = Archive.get_from_record(rec_uuid)
     ark.status = ArchiveStatus.PROCESSING
@@ -107,11 +104,9 @@ def oais_finish_transfer(rec_uuid, aip_id):
     The signal :py:data:`invenio_archivematica.signals.oais_transfer_finished`
     is called with the record as function parameter.
 
-    :param rec_uuid: the UUID of the record
-    :type rec_uuid: str
-    :param aip_id: the ID in Archivematica of the created AIP
+    :param str rec_uuid: the UUID of the record
+    :param str aip_id: the ID in Archivematica of the created AIP
         (should be an UUID)
-    :type aip_id: str
     """
     ark = Archive.get_from_record(rec_uuid)
     ark.status = ArchiveStatus.REGISTERED
@@ -131,8 +126,7 @@ def oais_fail_transfer(rec_uuid):
     The signal :py:data:`invenio_archivematica.signals.oais_transfer_failed`
     is called with the record as function parameter.
 
-    :param rec_uuid: the UUID of the record
-    :type rec_uuid: str
+    :param str rec_uuid: the UUID of the record
     """
     ark = Archive.get_from_record(rec_uuid)
     ark.status = ArchiveStatus.FAILED
@@ -163,17 +157,12 @@ def archive_new_records(days=30, hours=0, minutes=0, seconds=0, delay=True):
             }
         }
 
-    :param days: number of days that a new record must not have been
+    :param int days: number of days that a new record must not have been
         modified to get archived.
-    :type nb_days: int
-    :param hours: number of hours
-    :type hours: int
-    :param minutes: number of minutes
-    :type minutes: int
-    :param seconds: number of seconds
-    :type seconds: int
-    :param delay: tells if we should delay the transfers
-    :type delay: bool
+    :param int hours: number of hours
+    :param int minutes: number of minutes
+    :param int seconds: number of seconds
+    :param bool delay: tells if we should delay the transfers
     """
     # first we get all the records we need to archive
     begin_date = datetime.now() - timedelta(days=days,

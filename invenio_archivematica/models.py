@@ -133,10 +133,8 @@ class Archive(db.Model):
         The new Archive object will have a NEW status
         :param record: the record attached to the archive
         :type record: :py:class:`invenio_records.models.RecordMetadata`
-        :param aip_accessioned_id: the accessioned ID of the AIP if it exists
-        :type aip_accessioned_id: str
-        :param aip_id: The UUID of the AIP if it exists
-        :type aip_id: str
+        :param str aip_accessioned_id: the accessioned ID of the AIP
+        :param str aip_id: The UUID of the AIP
         """
         ark = cls(record=record,
                   status=ArchiveStatus.NEW,
@@ -151,8 +149,7 @@ class Archive(db.Model):
 
         It tries to get the Archive object associated to the record. If it
         exists, it returns it, otherwise it returns None.
-        :param uuid: the uuid of the record
-        :type uuid: str
+        :param str uuid: the uuid of the record
         :rtype: :py:class:`invenio_archivematica.models.Archive` or None
         """
         try:
