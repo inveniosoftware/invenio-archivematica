@@ -106,7 +106,7 @@ class Archive(db.Model):
 
     record_id = db.Column(
         UUIDType,
-        db.ForeignKey(RecordMetadata.id),
+        db.ForeignKey(RecordMetadata.id, name='fk_archivematica_record_id'),
         nullable=False
     )
     """Record related with the Archive."""

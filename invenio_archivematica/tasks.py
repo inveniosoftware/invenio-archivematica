@@ -70,6 +70,7 @@ def oais_start_transfer(rec_uuid, accessioned_id=''):
     transfer = import_string(imp)
     transfer(record.id, current_app.config['ARCHIVEMATICA_TRANSFER_FOLDER'])
 
+    db.session.commit()
     oais_transfer_started.send(record)
 
 
@@ -90,6 +91,7 @@ def oais_process_transfer(rec_uuid):
     ark.status = ArchiveStatus.PROCESSING
     db.session.add(ark)
 
+    db.session.commit()
     oais_transfer_processing.send(Record(ark.record.json, ark.record))
 
 
@@ -113,6 +115,7 @@ def oais_finish_transfer(rec_uuid, aip_id):
     ark.aip_id = aip_id
     db.session.add(ark)
 
+    db.session.commit()
     oais_transfer_finished.send(Record(ark.record.json, ark.record))
 
 
@@ -132,6 +135,7 @@ def oais_fail_transfer(rec_uuid):
     ark.status = ArchiveStatus.FAILED
     db.session.add(ark)
 
+    db.session.commit()
     oais_transfer_failed.send(Record(ark.record.json, ark.record))
 
 
