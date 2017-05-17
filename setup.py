@@ -44,7 +44,7 @@ tests_require = [
 
 extras_require = {
     'docs': [
-        'Sphinx>=1.5.1',
+        'Sphinx>=1.5.1,<1.6',  # TODO unpin see https://github.com/inveniosoftware/troubleshooting/issues/11
     ],
     'tests': tests_require,
 }
@@ -65,6 +65,7 @@ install_requires = [
     'invenio-db>=1.0.0b3',
     'invenio-records>=1.0.0b1',
     'invenio-records-files>=1.0.0a8',
+    'invenio-rest[cors]>=1.0.0a10',
     'invenio-pidstore>=1.0.0b1'
 ]
 
@@ -92,6 +93,9 @@ setup(
     include_package_data=True,
     platforms='any',
     entry_points={
+        'invenio_base.api_apps': [
+            'invenio_archivematica = invenio_archivematica:InvenioArchivematica',
+        ],
         'invenio_base.apps': [
             'invenio_archivematica = invenio_archivematica:InvenioArchivematica',
         ],
@@ -103,8 +107,12 @@ setup(
         # 'invenio_admin.actions': [],
         # 'invenio_assets.bundles': [],
         # 'invenio_base.api_apps': [],
-        # 'invenio_base.api_blueprints': [],
-        # 'invenio_base.blueprints': [],
+        'invenio_base.api_blueprints': [
+            'invenio_archivematica = invenio_archivematica.views:blueprint',
+        ],
+        'invenio_base.blueprints': [
+            'invenio_archivematica = invenio_archivematica.views:b',
+        ],
         'invenio_celery.tasks': [
             'invenio_archivematica = invenio_archivematica.tasks'
         ],

@@ -26,28 +26,36 @@
 
 from __future__ import absolute_import, print_function
 
-from functools import partial
+from functools import partial, wraps
 
-from flask import Blueprint, abort, jsonify, render_template, request
+import requests
+from flask import Blueprint, abort, current_app, jsonify, make_response, \
+    render_template
 from flask_babelex import gettext as _
-from invenio_pidstore.errors import PIDDoesNotExistError
-from invenio_pidstore.resolver import Resolver
-from invenio_records.api import Record
+from invenio_rest import ContentNegotiatedMethodView
+from webargs import fields
+from webargs.flaskparser import use_kwargs
 
 from invenio_archivematica.api import create_accessioned_id, fail_transfer, \
     finish_transfer, process_transfer
-from invenio_archivematica.models import ArchiveStatus
+from invenio_archivematica.models import Archive, ArchiveStatus
 
 blueprint = Blueprint(
     'invenio_archivematica',
     __name__,
-    template_folder='templates',
-    static_folder='static',
     url_prefix="/oais"
 )
 
+# TODO remove
+b = Blueprint(
+    'invenio_archivematica',
+    __name__,
+    url_prefix="/oais",
+    template_folder='templates'
+)
 
-@blueprint.route("/")
+
+@b.route("/")
 def index():
     """Show the index."""
     return render_template(
@@ -55,7 +63,7 @@ def index():
         module_name=_('Invenio-Archivematica'))
 
 
-@blueprint.route("/test/<string:pid>/")
+@b.route("/test/<string:pid>/")
 def test(pid):
     """Show a test page."""
     return """<DOCTYPE html><html><head></head><body>
@@ -63,40 +71,118 @@ def test(pid):
     </body></html>""".format(create_accessioned_id(pid, 'recid'))
 
 
-@blueprint.route("/set_status/<int:pid>/", methods=['POST'])
-def set_status(pid):
-    """Changes the status of an AIP.
+def pass_accession_id(f):
+    """Decorate to retrieve an Archive object."""
+    @wraps(f)
+    def decorate(*args, **kwargs):
+        aip_accession_id = kwargs.pop('aip_accession_id')
+        archive = Archive.get_from_accession_id(aip_accession_id)
+        if not archive:
+            abort(404, 'Accession_id {} not found.'.format(aip_accession_id))
+        return f(archive=archive, *args, **kwargs)
+    return decorate
 
-    This needs to receive JSON with `status` key, and depending on the status,
-    extra keys like `aip_id`...
-    """
-    try:
-        resolver = Resolver(pid_type='recid', getter=Record.get_record)
-        pid, record = resolver.resolve(pid)
-    except PIDDoesNotExistError:
-        abort(404)
-    try:
-        status = ArchiveStatus(request.values['status'])
-    except KeyError as err:
-        return jsonify(message="No key 'status' in data."), 400
-    except ValueError as err:
-        return jsonify(message=err.message), 400
 
-    functions = {
-        # can't mark as new: done by listeners
-        'NEW': lambda x: "invalid method.",
-        # can't mark as waiting: done by the factory when creating transfers
-        'WAITING': lambda x: "invalid method.",
-        'PROCESSING': process_transfer,
-        'REGISTERED': partial(finish_transfer,
-                              aip_id=request.values.get('aip_id')),
-        'FAILED': fail_transfer,
-        # can't mark as ignored: done by listeners
-        'IGNORED': lambda x: "invalid method.",
-        # TODO
-        'DELETED': lambda x: "invalid method.",
-    }
-    ret = functions[status.name](record)
-    if ret:
-        return jsonify(message=ret), 400
-    return '', 200
+def validate_status(status):
+    """Accept only valid status."""
+    if status not in {'PROCESSING', 'REGISTERED', 'FAILED', 'DELETED'}:
+        return False
+    return True
+
+
+class Status(ContentNegotiatedMethodView):
+    """Status of the archival of a record."""
+
+    def __init__(self, **kwargs):
+        """Constructor."""
+        kwargs['method_serializers'] = {
+            'GET': {'application/json': make_response}
+        }
+        kwargs['default_method_media_type'] = {'GET': 'application/json'}
+        kwargs['default_media_type'] = 'application/json'
+        super(Status, self).__init__(**kwargs)
+
+    @pass_accession_id
+    @use_kwargs({
+        'status': fields.Str(
+            load_from='status',
+            required=True,
+            location='json',
+            validate=validate_status
+        ),
+        'aip_id': fields.Str(
+            load_from='uuid',
+            location='json'
+        )
+    })
+    def put(self, archive, status, aip_id=None):
+        """Change the status of an Archive object.
+
+        Should be used by the Archivematica Automation-Tool only.
+        :params str aip_accession_id: accession_id of the AIP, used to find
+        the corresponding Archive object. In the URL
+        :params str status: the status of the AIP. One of the following:
+
+        * PROCESSING
+        * REGISTERED
+        * FAILED
+        * DELETED
+
+        :params str aip_id: the IP of the AIP (optional)
+        """
+        if archive.status == status:
+            return jsonify('')
+
+        functions = {
+            'PROCESSING': partial(process_transfer, aip_id=aip_id),
+            'REGISTERED': partial(finish_transfer, aip_id=aip_id),
+            'FAILED': fail_transfer,
+            # TODO
+            'DELETED': lambda x: "NIY.",
+        }
+        functions[status.name](archive.record)
+        return jsonify(''), 200
+
+    @pass_accession_id
+    @use_kwargs({
+        'real_status': fields.Boolean(
+            load_from='realStatus',
+            required=False,
+            location='json'
+        )
+    })
+    def get(self, archive, real_status=False):
+        """Returns the status of the Archive object."""
+        if not real_status \
+                or archive.status == ArchiveStatus.FAILED \
+                or not archive.aip_id:
+            return jsonify(archive.status.value)
+        # we ask Archivematica
+        # first we look at the status of the transfer
+        url = '{base}/api/transfer/status/{uuid}/'.format(
+            base=current_app.config['ARCHIVEMATICA_DASHBOARD_URL'],
+            uuid=archive.aip_id)
+        params = {
+            'username': current_app.config['ARCHIVEMATICA_DASHBOARD_USER'],
+            'api_key': current_app.config['ARCHIVEMATICA_DASHBOARD_API_KEY']
+        }
+        response = requests.get(url, params=params)
+        if response.ok:
+            json = response.json()
+            return jsonify(json['status'])
+        # we try to get the status of the SIP
+        url = '{base}/api/ingest/status/{uuid}/'.format(
+            base=current_app.config['ARCHIVEMATICA_DASHBOARD_URL'],
+            uuid=archive.aip_id)
+        response = requests.get(url, params=params)
+        if not response.ok:  # problem
+            return jsonify(None), response.status_code
+        # TODO update archive object
+        json = response.json()
+        return jsonify(json['status'])
+
+
+blueprint.add_url_rule(
+    '/status/<string:aip_accession_id>/',
+    view_func=Status.as_view('status')
+)

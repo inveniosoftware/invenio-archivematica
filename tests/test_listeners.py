@@ -60,7 +60,6 @@ def test_listeners(conf, expected_status, app, db):
 
     # we simulate that the record has been archived anyway :p
     ark.status = ArchiveStatus.REGISTERED
-    db.session.add(ark)
     # now we update the record
     rec['author'] = 'ME'
     rec.commit()

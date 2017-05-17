@@ -39,7 +39,6 @@ def listener_record_created(record, *args, **kwargs):
     ark = Archive.create(record.model)
     if not is_archivable or not is_archivable(record):
         ark.status = ArchiveStatus.IGNORED
-        db.session.add(ark)
 
 
 def listener_record_updated(record, *args, **kwargs):
@@ -55,8 +54,6 @@ def listener_record_updated(record, *args, **kwargs):
     if is_archivable and is_archivable(record):
         if ark.status != ArchiveStatus.NEW:
             ark.status = ArchiveStatus.NEW
-            db.session.add(ark)
     else:
         if ark.status != ArchiveStatus.IGNORED:
             ark.status = ArchiveStatus.IGNORED
-            db.session.add(ark)

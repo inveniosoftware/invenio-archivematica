@@ -53,3 +53,12 @@ here, it will be passed to your factory. See
 :py:func:`invenio_archivematica.factories.transfer_cp` and
 :py:data:`invenio_archivematica.config.ARCHIVEMATICA_TRANSFER_FACTORY`.
 """
+
+ARCHIVEMATICA_DASHBOARD_URL = 'http://localhost:81'
+"""The URL to Archivematica Dashboard."""
+
+ARCHIVEMATICA_DASHBOARD_USER = 'invenio'
+"""The user to connect to Archivematica Dashboard."""
+
+ARCHIVEMATICA_DASHBOARD_API_KEY = 'change me'
+"""The API key to use with the user above."""

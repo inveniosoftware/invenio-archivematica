@@ -13,3 +13,6 @@ export FLASK_APP=app.py
 
 # Setup app
 mkdir $DIR/instance
+# Create database
+flask db init
+flask db create

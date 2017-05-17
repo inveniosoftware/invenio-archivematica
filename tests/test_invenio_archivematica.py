@@ -29,6 +29,7 @@ from __future__ import absolute_import, print_function
 from flask import Flask
 
 from invenio_archivematica import InvenioArchivematica
+from invenio_archivematica.views import b
 
 
 def test_version():
@@ -52,7 +53,7 @@ def test_init():
 
 def test_view(app):
     """Test view."""
-    InvenioArchivematica(app)
+    app.register_blueprint(b)
     with app.test_client() as client:
         res = client.get("/oais/")
         assert res.status_code == 200

@@ -12,4 +12,5 @@ cd $DIR
 export FLASK_APP=app.py
 
 # Teardown app
+flask db destroy --yes-i-know
 [ -e "$DIR/instance" ] && rm -Rf $DIR/instance

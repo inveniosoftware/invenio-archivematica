@@ -50,25 +50,25 @@ ARCHIVE_STATUS_TITLES = {
 class ArchiveStatus(Enum):
     """Constants for possible status of any given Archive object."""
 
-    NEW = 'N'
+    NEW = 'NEW'
     """The record has been created or updated, but not yet archived."""
 
-    WAITING = 'W'
+    WAITING = 'WAITING'
     """The record has been transfered, and is waiting for processing."""
 
-    PROCESSING = 'P'
+    PROCESSING = 'PROCESSING'
     """The record is currently being archived."""
 
-    REGISTERED = 'R'
+    REGISTERED = 'REGISTERED'
     """The record has been archived."""
 
-    FAILED = 'F'
+    FAILED = 'FAILED'
     """The record has not been archived because of an error."""
 
-    IGNORED = 'I'
+    IGNORED = 'IGNORED'
     """The record won't be archived."""
 
-    DELETED = 'D'
+    DELETED = 'DELETED'
     """The archive has been deleted."""
 
     def __eq__(self, other):
@@ -114,7 +114,7 @@ class Archive(db.Model):
     record = db.relationship(RecordMetadata)
     """Relationship with Records."""
 
-    status = db.Column(ChoiceType(ArchiveStatus, impl=db.CHAR(1)),
+    status = db.Column(ChoiceType(ArchiveStatus, impl=db.CHAR(15)),
                        nullable=False)
 
     aip_accessioned_id = db.Column(db.String(255), nullable=True)
@@ -154,5 +154,18 @@ class Archive(db.Model):
         """
         try:
             return cls.query.filter_by(record_id=uuid).one()
+        except NoResultFound:
+            return None
+
+    @classmethod
+    def get_from_accession_id(cls, accession_id):
+        """Return the Archive object associated to the given record.
+
+        If the accession_id is not in the table, it returns None.
+        :param str accession_id: the accession_id of the Archive object.
+        :rtype: :py:class:`invenio_archivematica.models.Archive` or None
+        """
+        try:
+            return cls.query.filter_by(aip_accessioned_id=accession_id).one()
         except NoResultFound:
             return None

@@ -30,7 +30,6 @@ from invenio_records.signals import after_record_insert, after_record_update
 
 from . import config
 from .listeners import listener_record_created, listener_record_updated
-from .views import blueprint
 
 
 class InvenioArchivematica(object):
@@ -45,7 +44,6 @@ class InvenioArchivematica(object):
     def init_app(self, app):
         """Flask application initialization."""
         self.init_config(app)
-        app.register_blueprint(blueprint)
         app.extensions['invenio-archivematica'] = self
 
     def init_config(self, app):

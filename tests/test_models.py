@@ -36,8 +36,8 @@ def test_ArchiveStatus():
     status = ArchiveStatus.IGNORED
     assert status == ArchiveStatus.IGNORED
     assert status != ArchiveStatus.DELETED
-    assert status == 'I'
-    assert str(status) == 'I'
+    assert status == 'IGNORED'
+    assert str(status) == 'IGNORED'
     assert status.title == 'Ignored'
 
 
@@ -59,7 +59,6 @@ def test_Archive(db):
     ark.status = ArchiveStatus.REGISTERED
     ark.aip_accessioned_id = '08'
     ark.aip_id = recid
-    db.session.add(ark)
     db.session.commit()
     ark = Archive.get_from_record(recid)
     assert ark.status == ArchiveStatus.REGISTERED

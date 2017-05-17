@@ -63,15 +63,16 @@ def start_transfer(record, accessioned_id=''):
     oais_start_transfer.delay(str(record.id), accessioned_id)
 
 
-def process_transfer(record):
+def process_transfer(record, aip_id=None):
     """Create the archive for a record.
 
     Process the transfer of the record in asynchronous mode. See
     :py:mod:`invenio_archivematica.tasks`
     :param record: the record to archive
     :type record: :py:class:`invenio_records.api.Record`
+    :param str aip_id: the ID of the AIP in Archivematica
     """
-    oais_process_transfer.delay(str(record.id))
+    oais_process_transfer.delay(str(record.id), aip_id)
 
 
 def finish_transfer(record, aip_id):

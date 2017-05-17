@@ -64,7 +64,6 @@ def oais_start_transfer(rec_uuid, accessioned_id=''):
     if accessioned_id:
         ark.aip_accessioned_id = accessioned_id
     ark.status = ArchiveStatus.WAITING
-    db.session.add(ark)
     # we start the transfer
     imp = current_app.config['ARCHIVEMATICA_TRANSFER_FACTORY']
     transfer = import_string(imp)
@@ -75,7 +74,7 @@ def oais_start_transfer(rec_uuid, accessioned_id=''):
 
 
 @shared_task(ignore_result=True)
-def oais_process_transfer(rec_uuid):
+def oais_process_transfer(rec_uuid, aip_id=None):
     """Mark the transfer in progress.
 
     This function should be called if the transfer is processing. See
@@ -86,10 +85,11 @@ def oais_process_transfer(rec_uuid):
     is called with the record as function parameter.
 
     :param str rec_uuid: the UUID of the record
+    :param str aip_id: the ID of the AIP in Archivematica
     """
     ark = Archive.get_from_record(rec_uuid)
     ark.status = ArchiveStatus.PROCESSING
-    db.session.add(ark)
+    ark.aip_id = aip_id
 
     db.session.commit()
     oais_transfer_processing.send(Record(ark.record.json, ark.record))
@@ -113,7 +113,6 @@ def oais_finish_transfer(rec_uuid, aip_id):
     ark = Archive.get_from_record(rec_uuid)
     ark.status = ArchiveStatus.REGISTERED
     ark.aip_id = aip_id
-    db.session.add(ark)
 
     db.session.commit()
     oais_transfer_finished.send(Record(ark.record.json, ark.record))
@@ -133,7 +132,6 @@ def oais_fail_transfer(rec_uuid):
     """
     ark = Archive.get_from_record(rec_uuid)
     ark.status = ArchiveStatus.FAILED
-    db.session.add(ark)
 
     db.session.commit()
     oais_transfer_failed.send(Record(ark.record.json, ark.record))
