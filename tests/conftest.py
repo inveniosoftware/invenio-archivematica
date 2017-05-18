@@ -37,6 +37,8 @@ from invenio_db import db as db_
 from invenio_db import InvenioDB
 from invenio_files_rest import InvenioFilesREST
 from invenio_pidstore import InvenioPIDStore
+from invenio_records import InvenioRecords
+from invenio_rest import InvenioREST
 from sqlalchemy_utils.functions import create_database, database_exists, \
     drop_database
 
@@ -72,6 +74,8 @@ def app(base_app):
     InvenioDB(base_app)
     InvenioFilesREST(base_app)
     InvenioPIDStore(base_app)
+    InvenioRecords(base_app)
+    InvenioREST(base_app)
     with base_app.app_context():
         yield base_app
 
