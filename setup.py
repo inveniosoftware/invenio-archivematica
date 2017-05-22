@@ -64,6 +64,7 @@ install_requires = [
     'Flask-BabelEx>=0.9.2',
     'Flask-CeleryExt>=0.2.2',
     'alembic>=0.9.1',
+    'invenio-admin==1.0.0b1',
     'invenio-db>=1.0.0b3',
     'invenio-records>=1.0.0b1',
     'invenio-records-files>=1.0.0a8',
@@ -107,6 +108,10 @@ setup(
         # TODO: Edit these entry points to fit your needs.
         # 'invenio_access.actions': [],
         # 'invenio_admin.actions': [],
+        'invenio_admin.views': [
+            'invenio_archivematica_archive = '
+            'invenio_archivematica.admin:archive_adminview',
+        ],
         # 'invenio_assets.bundles': [],
         # 'invenio_base.api_apps': [],
         'invenio_base.api_blueprints': [

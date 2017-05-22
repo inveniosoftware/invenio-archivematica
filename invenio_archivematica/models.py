@@ -111,10 +111,7 @@ class Archive(db.Model):
     )
     """Record related with the Archive."""
 
-    record = db.relationship(RecordMetadata)
-    """Relationship with Records."""
-
-    status = db.Column(ChoiceType(ArchiveStatus, impl=db.CHAR(15)),
+    status = db.Column(ChoiceType(ArchiveStatus, impl=db.String(15)),
                        nullable=False)
 
     aip_accessioned_id = db.Column(db.String(255), nullable=True)
@@ -122,6 +119,10 @@ class Archive(db.Model):
 
     aip_id = db.Column(UUIDType, nullable=True)
     """ID of the AIP in Archivematica."""
+
+    # Relations
+    record = db.relationship(RecordMetadata)
+    """Relationship with Records."""
 
     #
     # Class methods
