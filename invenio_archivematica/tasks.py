@@ -29,10 +29,8 @@ from datetime import datetime, timedelta
 from celery import shared_task
 from flask import current_app
 from invenio_db import db
-from invenio_pidstore.models import PersistentIdentifier
 from invenio_records.api import Record
 from invenio_records.models import RecordMetadata
-from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.utils import import_string
 
 from invenio_archivematica.models import Archive, ArchiveStatus
