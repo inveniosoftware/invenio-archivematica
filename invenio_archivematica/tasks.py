@@ -86,7 +86,29 @@ def oais_process_transfer(rec_uuid, aip_id=None):
     :param str aip_id: the ID of the AIP in Archivematica
     """
     ark = Archive.get_from_record(rec_uuid)
-    ark.status = ArchiveStatus.PROCESSING
+    ark.status = ArchiveStatus.PROCESSING_TRANSFER
+    ark.aip_id = aip_id
+
+    db.session.commit()
+    oais_transfer_processing.send(Record(ark.record.json, ark.record))
+
+
+@shared_task(ignore_result=True)
+def oais_process_aip(rec_uuid, aip_id=None):
+    """Mark the aip in progress.
+
+    This function should be called if the aip is processing. See
+    :py:func:`invenio_archivematica.tasks.archive_record_start_transfer`.
+
+    The signal
+    :py:data:`invenio_archivematica.signals.oais_transfer_processing`
+    is called with the record as function parameter.
+
+    :param str rec_uuid: the UUID of the record
+    :param str aip_id: the ID of the AIP in Archivematica
+    """
+    ark = Archive.get_from_record(rec_uuid)
+    ark.status = ArchiveStatus.PROCESSING_AIP
     ark.aip_id = aip_id
 
     db.session.commit()

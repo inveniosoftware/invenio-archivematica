@@ -32,8 +32,8 @@ from invenio_records.api import Record
 
 from invenio_archivematica.models import Archive, ArchiveStatus
 from invenio_archivematica.tasks import archive_new_records, \
-    oais_fail_transfer, oais_finish_transfer, oais_process_transfer, \
-    oais_start_transfer
+    oais_fail_transfer, oais_finish_transfer, oais_process_aip, \
+    oais_process_transfer, oais_start_transfer
 
 
 def test_oais_start_transfer(db):
@@ -72,13 +72,29 @@ def test_oais_process_transfer(db):
     # let's create a record
     recid = uuid.uuid4()
     aipid = uuid.uuid4()
-    rec = Record.create({'title': 'Job finished'}, recid)
+    Record.create({'title': 'Job finished'}, recid)
     db.session.commit()
     # we fail the transfer
-    oais_process_transfer(recid)
+    oais_process_transfer(recid, aipid)
     assert Archive.query.count() == 1
     ark = Archive.get_from_record(recid)
-    assert ark.status == ArchiveStatus.PROCESSING
+    assert ark.status == ArchiveStatus.PROCESSING_TRANSFER
+    assert ark.aip_id == aipid
+
+
+def test_oais_process_aip(db):
+    """Test the oais_process_aip function."""
+    # let's create a record
+    recid = uuid.uuid4()
+    aipid = uuid.uuid4()
+    Record.create({'title': 'Job finished'}, recid)
+    db.session.commit()
+    # we fail the transfer
+    oais_process_aip(recid, aipid)
+    assert Archive.query.count() == 1
+    ark = Archive.get_from_record(recid)
+    assert ark.status == ArchiveStatus.PROCESSING_AIP
+    assert ark.aip_id == aipid
 
 
 def test_oais_finish_transfer(db):

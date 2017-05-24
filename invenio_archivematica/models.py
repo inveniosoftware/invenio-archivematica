@@ -39,7 +39,8 @@ _ = make_lazy_gettext(lambda: gettext)
 ARCHIVE_STATUS_TITLES = {
     'NEW': _('New'),
     'WAITING': _('Waiting'),
-    'PROCESSING': _('Processing'),
+    'PROCESSING_TRANSFER': _('Processing Transfer'),
+    'PROCESSING_AIP': _('Processing AIP'),
     'REGISTERED': _('Registered'),
     'FAILED': _('Failed'),
     'IGNORED': _('Ignored'),
@@ -56,8 +57,11 @@ class ArchiveStatus(Enum):
     WAITING = 'WAITING'
     """The record has been transfered, and is waiting for processing."""
 
-    PROCESSING = 'PROCESSING'
-    """The record is currently being archived."""
+    PROCESSING_TRANSFER = 'PROCESSING_TRANSFER'
+    """The record is currently being processed as a transfer (first step)."""
+
+    PROCESSING_AIP = 'PROCESSING_AIP'
+    """The record is currently being processed as an AIP (final step)."""
 
     REGISTERED = 'REGISTERED'
     """The record has been archived."""
@@ -85,6 +89,10 @@ class ArchiveStatus(Enum):
         return ARCHIVE_STATUS_TITLES[self.name]
 
 
+class ArchivematicaStatus(Enum):
+    """Constants for status of AIPs provided by Archivematica."""
+
+
 class Archive(db.Model):
     """Registers the status of a record: archived or not.
 
@@ -101,7 +109,7 @@ class Archive(db.Model):
         db.Index('idx_ark_status', 'status')
     )
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.BigInteger, primary_key=True)
     """ID of the Archive object."""
 
     record_id = db.Column(
@@ -111,10 +119,10 @@ class Archive(db.Model):
     )
     """Record related with the Archive."""
 
-    status = db.Column(ChoiceType(ArchiveStatus, impl=db.String(15)),
+    status = db.Column(ChoiceType(ArchiveStatus, impl=db.String(20)),
                        nullable=False)
 
-    aip_accessioned_id = db.Column(db.String(255), nullable=True)
+    aip_accessioned_id = db.Column(db.String(255), nullable=True, unique=True)
     """Accessioned ID of the AIP in Archivematica."""
 
     aip_id = db.Column(UUIDType, nullable=True)
