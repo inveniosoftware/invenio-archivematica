@@ -109,7 +109,8 @@ class Archive(db.Model):
         db.Index('idx_ark_status', 'status')
     )
 
-    id = db.Column(db.BigInteger, primary_key=True)
+    id = db.Column(db.BigInteger().with_variant(db.Integer, 'sqlite'),
+                   primary_key=True)
     """ID of the Archive object."""
 
     record_id = db.Column(
@@ -122,7 +123,7 @@ class Archive(db.Model):
     status = db.Column(ChoiceType(ArchiveStatus, impl=db.String(20)),
                        nullable=False)
 
-    aip_accessioned_id = db.Column(db.String(255), nullable=True, unique=True)
+    accession_id = db.Column(db.String(255), nullable=True, unique=True)
     """Accessioned ID of the AIP in Archivematica."""
 
     aip_id = db.Column(UUIDType, nullable=True)
@@ -136,18 +137,18 @@ class Archive(db.Model):
     # Class methods
     #
     @classmethod
-    def create(cls, record, aip_accessioned_id=None, aip_id=None):
+    def create(cls, record, accession_id=None, aip_id=None):
         """Create a new Archive object and add it to the session.
 
         The new Archive object will have a NEW status
         :param record: the record attached to the archive
         :type record: :py:class:`invenio_records.models.RecordMetadata`
-        :param str aip_accessioned_id: the accessioned ID of the AIP
+        :param str accession_id: the accession ID of the AIP
         :param str aip_id: The UUID of the AIP
         """
         ark = cls(record=record,
                   status=ArchiveStatus.NEW,
-                  aip_accessioned_id=aip_accessioned_id,
+                  accession_id=accession_id,
                   aip_id=aip_id)
         db.session.add(ark)
         return ark
@@ -175,6 +176,6 @@ class Archive(db.Model):
         :rtype: :py:class:`invenio_archivematica.models.Archive` or None
         """
         try:
-            return cls.query.filter_by(aip_accessioned_id=accession_id).one()
+            return cls.query.filter_by(accession_id=accession_id).one()
         except NoResultFound:
             return None

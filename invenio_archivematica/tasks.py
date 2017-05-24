@@ -29,6 +29,7 @@ from datetime import datetime, timedelta
 from celery import shared_task
 from flask import current_app
 from invenio_db import db
+from invenio_pidstore.models import PersistentIdentifier
 from invenio_records.api import Record
 from invenio_records.models import RecordMetadata
 from werkzeug.utils import import_string
@@ -39,7 +40,7 @@ from invenio_archivematica.signals import oais_transfer_failed, \
 
 
 @shared_task(ignore_result=True)
-def oais_start_transfer(rec_uuid, accessioned_id=''):
+def oais_start_transfer(rec_uuid, accession_id=''):
     """Archive a record.
 
     This function should be called to start a transfer to archive a record.
@@ -50,8 +51,9 @@ def oais_start_transfer(rec_uuid, accessioned_id=''):
     is called with the record as function parameter.
 
     :param str rec_uuid: the UUID of the record to archive
-    :param str accessioned_id: the AIP accessioned ID. If not given, it will
-        not be updated
+    :param str accession_id: the AIP accession ID. If not given, and the
+    archive doesn't already have one, it will be generated from
+    :py:data:`invenio_archivematica.config.ARCHIVEMATICA_ACCESSION_ID_FACTORY`
     """
     # we get the record
     record = Record.get_record(rec_uuid)
@@ -59,8 +61,13 @@ def oais_start_transfer(rec_uuid, accessioned_id=''):
     ark = Archive.get_from_record(rec_uuid)
     if not ark:
         ark = Archive.create(record.model)
-    if accessioned_id:
-        ark.aip_accessioned_id = accessioned_id
+    if accession_id:
+        ark.accession_id = accession_id
+    elif not ark.accession_id:
+        create_accession_id = import_string(
+            current_app.config['ARCHIVEMATICA_ACCESSION_ID_FACTORY'])
+        pid = PersistentIdentifier.get_by_object('recid', 'rec', rec_uuid)
+        ark.accession_id = create_accession_id(pid.pid_value, 'recid')
     ark.status = ArchiveStatus.WAITING
     # we start the transfer
     imp = current_app.config['ARCHIVEMATICA_TRANSFER_FACTORY']

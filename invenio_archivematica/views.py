@@ -36,8 +36,9 @@ from invenio_rest import ContentNegotiatedMethodView
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
-from invenio_archivematica.api import create_accessioned_id, fail_transfer, \
-    finish_transfer, process_transfer
+from invenio_archivematica.api import fail_transfer, finish_transfer, \
+    process_transfer
+from invenio_archivematica.factories import create_accession_id
 from invenio_archivematica.models import Archive, ArchiveStatus
 
 blueprint = Blueprint(
@@ -68,7 +69,7 @@ def test(pid):
     """Show a test page."""
     return """<DOCTYPE html><html><head></head><body>
     <h1>{}</h1>
-    </body></html>""".format(create_accessioned_id(pid, 'recid'))
+    </body></html>""".format(create_accession_id(pid, 'recid'))
 
 
 def pass_accession_id(f):

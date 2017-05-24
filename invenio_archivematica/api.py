@@ -24,43 +24,22 @@
 
 """API for Invenio 3 module to connect Invenio to Archivematica."""
 
-from flask import current_app
-from invenio_pidstore.resolver import Resolver
-from invenio_records.api import Record
-
 from invenio_archivematica.tasks import oais_fail_transfer, \
     oais_finish_transfer, oais_process_transfer, oais_start_transfer
 
 
-def create_accessioned_id(record_pid, pid_type):
-    """Create an accessioned ID to store the record in Archivematica.
-
-    :param str record_pid: the PID of the record
-    :param str pid_type: the type of the PID ('recid'...)
-    :returns: the created ID
-    :rtype: str
-    """
-    resolver = Resolver(pid_type=pid_type, getter=Record.get_record)
-    pid, record = resolver.resolve(record_pid)
-    return "{service}-{pid_type}-{pid}-{version}".format(
-        service=current_app.config['ARCHIVEMATICA_ORGANIZATION_NAME'],
-        pid_type=pid_type,
-        pid=record_pid,
-        version=record.revision_id)
-
-
-def start_transfer(record, accessioned_id=''):
+def start_transfer(record, accession_id=''):
     """Start the archive process for a record.
 
     Start the transfer of the record in asynchronous mode. See
     :py:mod:`invenio_archivematica.tasks`
     :param record: the record to archive
     :type record: :py:class:`invenio_records.api.Record`
-    :param str accessioned_id: the accessioned ID in archivematica. You can
+    :param str accession_id: the accessioned ID in archivematica. You can
     compute it from
-    :py:func:`invenio_archivematica.api.create_accessioned_id`
+    :py:func:`invenio_archivematica.factories.create_accession_id`
     """
-    oais_start_transfer.delay(str(record.id), accessioned_id)
+    oais_start_transfer.delay(str(record.id), accession_id)
 
 
 def process_transfer(record, aip_id=None):

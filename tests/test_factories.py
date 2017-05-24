@@ -36,7 +36,22 @@ from invenio_records_files.models import RecordsBuckets
 from six import BytesIO
 
 from invenio_archivematica import factories
-from invenio_archivematica.api import create_accessioned_id
+from invenio_archivematica.models import Archive
+
+
+def test_create_accessioned_id(db):
+    """Test ``create_accessioned_id`` function."""
+    # First, we create a record
+    recid = uuid.uuid4()
+    PersistentIdentifier.create(
+        'recid',
+        '42',
+        object_type='rec',
+        object_uuid=recid,
+        status=PIDStatus.REGISTERED)
+    Record.create({'title': 'record test'}, recid)
+    accessioned_id = factories.create_accession_id('42', 'recid')
+    assert accessioned_id == 'CERN-recid-42-0'
 
 
 def test_transfer_cp(db):
@@ -50,6 +65,9 @@ def test_transfer_cp(db):
         object_uuid=recid,
         status=PIDStatus.REGISTERED)
     record = Record.create({'title': 'record test'}, recid)
+    tmppath = tempfile.mkdtemp()
+    rec_dir = join(tmppath, factories.create_accession_id('1337', 'recid'))
+    Archive.get_from_record(recid).accession_id = rec_dir
     # we setup a file storage
     tmppath = tempfile.mkdtemp()
     db.session.add(Location(name='default', uri=tmppath, default=True))
@@ -60,7 +78,6 @@ def test_transfer_cp(db):
     RecordsBuckets.create(record=record.model, bucket=bucket)
     record.files['crab.txt'] = BytesIO(content)
     # test!
-    rec_dir = join(tmppath, create_accessioned_id('1337', 'recid'))
     factories.transfer_cp(record.id, tmppath)
     assert isdir(rec_dir)
     assert isfile(join(rec_dir, 'crab.txt'))
@@ -81,8 +98,10 @@ def test_transfer_rsync(db):
         object_uuid=recid,
         status=PIDStatus.REGISTERED)
     record = Record.create({'title': 'lambda'}, recid)
-    # we setup a file storage
     tmppath = tempfile.mkdtemp()
+    rec_dir = join(tmppath, factories.create_accession_id('42', 'recid'))
+    Archive.get_from_record(recid).accession_id = rec_dir
+    # we setup a file storage
     db.session.add(Location(name='default', uri=tmppath, default=True))
     db.session.commit()
     # we add a file to the record
@@ -95,7 +114,6 @@ def test_transfer_rsync(db):
         'destination': tmppath,
         'args': '-az'
     }
-    rec_dir = join(tmppath, create_accessioned_id('42', 'recid'))
     factories.transfer_rsync(record.id, config)
     assert isdir(rec_dir)
     assert isfile(join(rec_dir, 'zombie.txt'))

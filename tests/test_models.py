@@ -53,16 +53,16 @@ def test_Archive(db):
     ark = Archive.get_from_record(recid)
     assert ark.record == rec.model
     assert ark.status == ArchiveStatus.NEW
-    assert ark.aip_accessioned_id is None
+    assert ark.accession_id is None
     assert ark.aip_id is None
     # let's change the object
     ark.status = ArchiveStatus.REGISTERED
-    ark.aip_accessioned_id = '08'
+    ark.accession_id = '08'
     ark.aip_id = recid
     db.session.commit()
     ark = Archive.get_from_record(recid)
     assert ark.status == ArchiveStatus.REGISTERED
-    assert ark.aip_accessioned_id == '08'
+    assert ark.accession_id == '08'
     assert ark.aip_id == recid
     # we try to get a non existing record
     assert Archive.get_from_record(uuid.uuid4()) is None

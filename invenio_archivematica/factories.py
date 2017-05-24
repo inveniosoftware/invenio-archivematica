@@ -30,10 +30,28 @@ from shutil import copyfile, rmtree
 from subprocess import call
 from tempfile import mkdtemp
 
-from invenio_pidstore.models import PersistentIdentifier
+from flask import current_app
+from invenio_pidstore.resolver import Resolver
 from invenio_records_files.api import Record
 
-from invenio_archivematica.api import create_accessioned_id
+from invenio_archivematica.models import Archive
+
+
+def create_accession_id(record_pid, pid_type):
+    """Create an accession ID to store the record in Archivematica.
+
+    :param str record_pid: the PID of the record
+    :param str pid_type: the type of the PID ('recid'...)
+    :returns: the created ID
+    :rtype: str
+    """
+    resolver = Resolver(pid_type=pid_type, getter=Record.get_record)
+    pid, record = resolver.resolve(record_pid)
+    return "{service}-{pid_type}-{pid}-{version}".format(
+        service=current_app.config['ARCHIVEMATICA_ORGANIZATION_NAME'],
+        pid_type=pid_type,
+        pid=record_pid,
+        version=record.revision_id)
 
 
 def transfer_cp(uuid, config):
@@ -54,8 +72,8 @@ def transfer_cp(uuid, config):
         It needs to be a absolute path to a folder
     """
     record = Record.get_record(uuid)
-    pid = PersistentIdentifier.get_by_object('recid', 'rec', uuid)
-    dir_name = join(config, create_accessioned_id(pid.pid_value, 'recid'))
+    ark = Archive.get_from_record(uuid)
+    dir_name = join(config, ark.accession_id)
     try:
         mkdir(dir_name)
     except OSError:
@@ -96,12 +114,12 @@ def transfer_rsync(uuid, config):
     :param config: the config for rsync
     """
     record = Record.get_record(uuid)
-    pid = PersistentIdentifier.get_by_object('recid', 'rec', uuid)
+    ark = Archive.get_from_record(uuid)
 
     # first we copy everything in a temp folder
     ftmp = mkdtemp()
     try:
-        dir_name = create_accessioned_id(pid.pid_value, 'recid')
+        dir_name = ark.accession_id
         rectmp = join(ftmp, dir_name)
         mkdir(rectmp)
         for fileobj in record.files:

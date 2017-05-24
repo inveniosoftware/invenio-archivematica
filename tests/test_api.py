@@ -24,24 +24,4 @@
 
 """Test the API."""
 
-import uuid
-
-from invenio_pidstore.models import PersistentIdentifier, PIDStatus
-from invenio_records.api import Record
-
 from invenio_archivematica import api
-
-
-def test_create_accessioned_id(db):
-    """Test ``create_accessioned_id`` function."""
-    # First, we create a record
-    recid = uuid.uuid4()
-    PersistentIdentifier.create(
-        'recid',
-        '42',
-        object_type='rec',
-        object_uuid=recid,
-        status=PIDStatus.REGISTERED)
-    Record.create({'title': 'record test'}, recid)
-    accessioned_id = api.create_accessioned_id('42', 'recid')
-    assert accessioned_id == 'CERN-recid-42-0'

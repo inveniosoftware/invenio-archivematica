@@ -55,7 +55,7 @@ def test_oais_start_transfer(db):
     ark = Archive.get_from_record(recid)
     assert ark.record == rec.model
     assert ark.status == ArchiveStatus.WAITING
-    assert ark.aip_accessioned_id == '1991'
+    assert ark.accession_id == '1991'
     # we try the case where no archive exist
     db.session.delete(ark)
     db.session.commit()
@@ -64,7 +64,7 @@ def test_oais_start_transfer(db):
     assert Archive.query.count() == 1
     assert ark.record == rec.model
     assert ark.status == ArchiveStatus.WAITING
-    assert ark.aip_accessioned_id == '1991'
+    assert ark.accession_id == '1991'
 
 
 def test_oais_process_transfer(db):

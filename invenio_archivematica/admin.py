@@ -38,13 +38,13 @@ class ArchiveModelView(ModelView):
     can_view_details = True
     column_display_all_relations = True
     column_list = (
-        'record_id', 'record.updated', 'status', 'aip_accessioned_id', 'aip_id'
+        'record_id', 'record.updated', 'status', 'accession_id', 'aip_id'
     )
     column_labels = {
         'record_id': 'ID of the Record',
         'record.updated': 'Last update',
         'status': 'Status',
-        'aip_accessioned_id': 'AIP Accessioned ID',
+        'accession_id': 'AIP Accession ID',
         'aip_id': 'AIP ID'
     }
     page_size = 25

@@ -35,6 +35,13 @@ and :py:data:`invenio_archivematica.config.ARCHIVEMATICA_TRANSFER_FOLDER`
 for more information.
 """
 
+ARCHIVEMATICA_ACCESSION_ID_FACTORY = 'invenio_archivematica.factories.' \
+                                     'create_accession_id'
+"""The factory used to generate accession_id by default.
+
+see :py:func:`invenio_archivematica.factories.create_accession_id`.
+"""
+
 ARCHIVEMATICA_ISARCHIVABLE_FACTORY = 'invenio_archivematica.' \
                                      'factories.is_archivable_all'
 """The factory that is used to know if the record should be archived or not.
