@@ -56,6 +56,10 @@ def test_create_accessioned_id(db):
 
 def test_transfer_cp(db):
     """Test factories.transfer_cp function."""
+    # we setup a file storage
+    tmppath = tempfile.mkdtemp()
+    db.session.add(Location(name='default', uri=tmppath, default=True))
+    db.session.commit()
     # first we create a record
     recid = uuid.uuid4()
     PersistentIdentifier.create(
@@ -65,13 +69,8 @@ def test_transfer_cp(db):
         object_uuid=recid,
         status=PIDStatus.REGISTERED)
     record = Record.create({'title': 'record test'}, recid)
-    tmppath = tempfile.mkdtemp()
     rec_dir = join(tmppath, factories.create_accession_id('1337', 'recid'))
     Archive.get_from_record(recid).accession_id = rec_dir
-    # we setup a file storage
-    tmppath = tempfile.mkdtemp()
-    db.session.add(Location(name='default', uri=tmppath, default=True))
-    db.session.commit()
     # we add a file to the record
     bucket = Bucket.create()
     content = b'Aaah! A headcrab!!!\n'
@@ -89,6 +88,10 @@ def test_transfer_cp(db):
 
 def test_transfer_rsync(db):
     """Test factories.transfer_rsync function."""
+    # we setup a file storage
+    tmppath = tempfile.mkdtemp()
+    db.session.add(Location(name='default', uri=tmppath, default=True))
+    db.session.commit()
     # first we create a record
     recid = uuid.uuid4()
     PersistentIdentifier.create(
@@ -98,12 +101,8 @@ def test_transfer_rsync(db):
         object_uuid=recid,
         status=PIDStatus.REGISTERED)
     record = Record.create({'title': 'lambda'}, recid)
-    tmppath = tempfile.mkdtemp()
     rec_dir = join(tmppath, factories.create_accession_id('42', 'recid'))
     Archive.get_from_record(recid).accession_id = rec_dir
-    # we setup a file storage
-    db.session.add(Location(name='default', uri=tmppath, default=True))
-    db.session.commit()
     # we add a file to the record
     bucket = Bucket.create()
     content = b'Its on my head!!!\n'
