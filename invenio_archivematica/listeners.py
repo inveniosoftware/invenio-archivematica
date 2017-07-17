@@ -25,35 +25,15 @@
 """Listeners connected to signals."""
 
 from flask import current_app
-from invenio_db import db
-from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.utils import import_string
 
 from invenio_archivematica.models import Archive, ArchiveStatus
 
 
-def listener_record_created(record, *args, **kwargs):
-    """Create an entry in the database when a record is created."""
+def listener_sip_created(sip, *args, **kwargs):
+    """Create an entry in the database when a sip is created."""
     imp = current_app.config['ARCHIVEMATICA_ISARCHIVABLE_FACTORY']
     is_archivable = import_string(imp) if imp else None
-    ark = Archive.create(record.model)
-    if not is_archivable or not is_archivable(record):
+    ark = Archive.create(sip.model)
+    if not is_archivable or not is_archivable(sip):
         ark.status = ArchiveStatus.IGNORED
-
-
-def listener_record_updated(record, *args, **kwargs):
-    """Create an entry in the database when a record is updated."""
-    imp = current_app.config['ARCHIVEMATICA_ISARCHIVABLE_FACTORY']
-    is_archivable = import_string(imp) if imp else None
-    # we test if the archive object already exists
-    ark = Archive.get_from_record(record.id)
-    # otherwise we create it
-    if not ark:
-        ark = Archive.create(record.model)
-    # we check if we need to archive it or not
-    if is_archivable and is_archivable(record):
-        if ark.status != ArchiveStatus.NEW:
-            ark.status = ArchiveStatus.NEW
-    else:
-        if ark.status != ArchiveStatus.IGNORED:
-            ark.status = ArchiveStatus.IGNORED

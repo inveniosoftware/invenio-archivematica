@@ -41,7 +41,7 @@ tests_require = [
     'pytest-cache>=1.0',
     'pytest-cov>=1.8.0',
     'pytest-pep8>=1.0.6',
-    'pytest>=2.8.0',
+    'pytest>=2.8.3',
 ]
 
 extras_require = {
@@ -56,20 +56,19 @@ for reqs in extras_require.values():
     extras_require['all'].extend(reqs)
 
 setup_requires = [
-    'Babel>=1.3',
-    'pytest-runner>=2.6.2',
+    'Babel>=2.4.0',
+    'pytest-runner>=2.11.1',
 ]
 
 install_requires = [
-    'Flask-BabelEx>=0.9.2',
-    'Flask-CeleryExt>=0.2.2',
-    'alembic>=0.9.1',
-    'invenio-admin==1.0.0b1',
-    'invenio-db>=1.0.0b3',
-    'invenio-records>=1.0.0b1',
-    'invenio-records-files>=1.0.0a8',
-    'invenio-rest[cors]>=1.0.0a10',
-    'invenio-pidstore>=1.0.0b1'
+    'Flask-BabelEx>=0.9.3',
+    'Flask-CeleryExt>=0.3.0',
+    'alembic>=0.9.3',
+    'invenio-admin==1.0.0b2',
+    'invenio-db>=1.0.0b7',
+    'invenio-sipstore>=1.0.0a3',
+    'invenio-files-rest>=1.0.0a17',
+    'invenio-rest[cors]>=1.0.0b1'
 ]
 
 packages = find_packages()

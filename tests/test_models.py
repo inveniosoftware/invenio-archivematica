@@ -26,9 +26,11 @@
 
 import uuid
 
-from invenio_records.api import Record
+from invenio_accounts.testutils import create_test_user
+from invenio_sipstore.api import SIP
 
-from invenio_archivematica.models import Archive, ArchiveStatus
+from invenio_archivematica.models import Archive, ArchiveStatus, \
+    status_converter
 
 
 def test_ArchiveStatus():
@@ -41,28 +43,37 @@ def test_ArchiveStatus():
     assert status.title == 'Ignored'
 
 
+def test_status_converter():
+    """Test the ``status_converter`` function."""
+    assert status_converter('COMPLETE') == ArchiveStatus.REGISTERED
+    assert status_converter('PROCESSING') == ArchiveStatus.PROCESSING_TRANSFER
+    assert status_converter('PROCESSING', True) == \
+        ArchiveStatus.PROCESSING_AIP
+    assert status_converter('USER_INPUT') == ArchiveStatus.FAILED
+
+
 def test_Archive(db):
     """Test the Archive model class."""
     assert Archive.query.count() == 0
-    # we create a record, it will automatically create an Archive via signals
-    recid = uuid.uuid4()
-    rec = Record.create({'title': 'This is a fake!'}, recid)
+    # we create an SIP, it will automatically create an Archive via signals
+    user = create_test_user('test@example.org')
+    sip = SIP.create(True, user_id=user.id, agent={'test': 'test'})
     db.session.commit()
 
     assert Archive.query.count() == 1
-    ark = Archive.get_from_record(recid)
-    assert ark.record == rec.model
+    ark = Archive.get_from_sip(sip.id)
+    assert ark.sip.user.id == sip.user.id
     assert ark.status == ArchiveStatus.NEW
     assert ark.accession_id is None
-    assert ark.aip_id is None
+    assert ark.archivematica_id is None
     # let's change the object
     ark.status = ArchiveStatus.REGISTERED
     ark.accession_id = '08'
-    ark.aip_id = recid
+    ark.archivematica_id = sip.id
     db.session.commit()
-    ark = Archive.get_from_record(recid)
+    ark = Archive.get_from_accession_id('08')
+    assert Archive.query.count() == 1
     assert ark.status == ArchiveStatus.REGISTERED
-    assert ark.accession_id == '08'
-    assert ark.aip_id == recid
+    assert ark.archivematica_id == sip.id
     # we try to get a non existing record
-    assert Archive.get_from_record(uuid.uuid4()) is None
+    assert Archive.get_from_sip(uuid.uuid4()) is None

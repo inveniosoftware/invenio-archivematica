@@ -29,9 +29,7 @@ from datetime import datetime, timedelta
 from celery import shared_task
 from flask import current_app
 from invenio_db import db
-from invenio_pidstore.models import PersistentIdentifier
-from invenio_records.api import Record
-from invenio_records.models import RecordMetadata
+from invenio_sipstore.api import SIP
 from werkzeug.utils import import_string
 
 from invenio_archivematica.models import Archive, ArchiveStatus
@@ -40,135 +38,131 @@ from invenio_archivematica.signals import oais_transfer_failed, \
 
 
 @shared_task(ignore_result=True)
-def oais_start_transfer(rec_uuid, accession_id=''):
-    """Archive a record.
+def oais_start_transfer(uuid, accession_id='', archivematica_id=None):
+    """Archive a sip.
 
-    This function should be called to start a transfer to archive a record.
+    This function should be called to start a transfer to archive a sip.
     Once the transfer is finished, you should call
-    :py:func:`invenio_archivematica.tasks.archive_record_finish_transfer`.
+    :py:func:`invenio_archivematica.tasks.oais_finish_transfer`.
 
     The signal :py:data:`invenio_archivematica.signals.oais_transfer_started`
-    is called with the record as function parameter.
+    is called with the sip as function parameter.
 
-    :param str rec_uuid: the UUID of the record to archive
-    :param str accession_id: the AIP accession ID. If not given, and the
-    archive doesn't already have one, it will be generated from
-    :py:data:`invenio_archivematica.config.ARCHIVEMATICA_ACCESSION_ID_FACTORY`
+    :param str uuid: the UUID of the sip to archive
+    :param str accession_id: the AIP accession ID. You can generate one from
+    :py:func:`invenio_archivematica.factories.create_accession_id`
     """
-    # we get the record
-    record = Record.get_record(rec_uuid)
-    # we register the record as being processed
-    ark = Archive.get_from_record(rec_uuid)
+    # we get the sip
+    sip = SIP.get_sip(uuid)
+    # we register the sip as being processed
+    ark = Archive.get_from_sip(uuid)
     if not ark:
-        ark = Archive.create(record.model)
-    if accession_id:
-        ark.accession_id = accession_id
-    elif not ark.accession_id:
-        create_accession_id = import_string(
-            current_app.config['ARCHIVEMATICA_ACCESSION_ID_FACTORY'])
-        pid = PersistentIdentifier.get_by_object('recid', 'rec', rec_uuid)
-        ark.accession_id = create_accession_id(pid.pid_value, 'recid')
+        ark = Archive.create(sip.model)
+    ark.accession_id = accession_id
     ark.status = ArchiveStatus.WAITING
     # we start the transfer
     imp = current_app.config['ARCHIVEMATICA_TRANSFER_FACTORY']
     transfer = import_string(imp)
-    transfer(record.id, current_app.config['ARCHIVEMATICA_TRANSFER_FOLDER'])
+    transfer(sip.id, current_app.config['ARCHIVEMATICA_TRANSFER_FOLDER'])
 
     db.session.commit()
-    oais_transfer_started.send(record)
+    oais_transfer_started.send(sip)
 
 
 @shared_task(ignore_result=True)
-def oais_process_transfer(rec_uuid, aip_id=None):
+def oais_process_transfer(uuid, accession_id='', archivematica_id=None):
     """Mark the transfer in progress.
 
     This function should be called if the transfer is processing. See
-    :py:func:`invenio_archivematica.tasks.archive_record_start_transfer`.
+    :py:func:`invenio_archivematica.tasks.oais_start_transfer`.
 
     The signal
     :py:data:`invenio_archivematica.signals.oais_transfer_processing`
-    is called with the record as function parameter.
+    is called with the sip as function parameter.
 
-    :param str rec_uuid: the UUID of the record
-    :param str aip_id: the ID of the AIP in Archivematica
+    :param str uuid: the UUID of the sip
+    :param str archivematica_id: the ID of the AIP in Archivematica
     """
-    ark = Archive.get_from_record(rec_uuid)
+    ark = Archive.get_from_sip(uuid)
     ark.status = ArchiveStatus.PROCESSING_TRANSFER
-    ark.aip_id = aip_id
+    ark.archivematica_id = archivematica_id
 
     db.session.commit()
-    oais_transfer_processing.send(Record(ark.record.json, ark.record))
+    oais_transfer_processing.send(SIP(ark.sip))
 
 
 @shared_task(ignore_result=True)
-def oais_process_aip(rec_uuid, aip_id=None):
+def oais_process_aip(uuid, accession_id='', archivematica_id=None):
     """Mark the aip in progress.
 
     This function should be called if the aip is processing. See
-    :py:func:`invenio_archivematica.tasks.archive_record_start_transfer`.
+    :py:func:`invenio_archivematica.tasks.oais_start_transfer`.
 
     The signal
     :py:data:`invenio_archivematica.signals.oais_transfer_processing`
-    is called with the record as function parameter.
+    is called with the sip as function parameter.
 
-    :param str rec_uuid: the UUID of the record
-    :param str aip_id: the ID of the AIP in Archivematica
+    :param str uuid: the UUID of the sip
+    :param str archivematica_id: the ID of the AIP in Archivematica
     """
-    ark = Archive.get_from_record(rec_uuid)
+    ark = Archive.get_from_sip(uuid)
     ark.status = ArchiveStatus.PROCESSING_AIP
-    ark.aip_id = aip_id
+    ark.archivematica_id = archivematica_id
 
     db.session.commit()
-    oais_transfer_processing.send(Record(ark.record.json, ark.record))
+    oais_transfer_processing.send(SIP(ark.sip))
 
 
 @shared_task(ignore_result=True)
-def oais_finish_transfer(rec_uuid, aip_id):
-    """Finalize the transfer of a record.
+def oais_finish_transfer(uuid, accession_id='', archivematica_id=None):
+    """Finalize the transfer of a sip.
 
     This function should be called once the transfer has been finished, to
-    mark the record as correctly archived. See
-    :py:func:`invenio_archivematica.tasks.archive_record_start_transfer`.
+    mark the sip as correctly archived. See
+    :py:func:`invenio_archivematica.tasks.oais_start_transfer`.
 
     The signal :py:data:`invenio_archivematica.signals.oais_transfer_finished`
-    is called with the record as function parameter.
+    is called with the sip as function parameter.
 
-    :param str rec_uuid: the UUID of the record
-    :param str aip_id: the ID in Archivematica of the created AIP
+    :param str uuid: the UUID of the sip
+    :param str archivematica_id: the ID in Archivematica of the created AIP
         (should be an UUID)
     """
-    ark = Archive.get_from_record(rec_uuid)
+    ark = Archive.get_from_sip(uuid)
     ark.status = ArchiveStatus.REGISTERED
-    ark.aip_id = aip_id
+    ark.archivematica_id = archivematica_id
+    ark.sip.archived = True
 
     db.session.commit()
-    oais_transfer_finished.send(Record(ark.record.json, ark.record))
+    oais_transfer_finished.send(SIP(ark.sip))
 
 
 @shared_task(ignore_result=True)
-def oais_fail_transfer(rec_uuid):
+def oais_fail_transfer(uuid, accession_id='', archivematica_id=None):
     """Mark the transfer as failed.
 
     This function should be called if the transfer failed. See
-    :py:func:`invenio_archivematica.tasks.archive_record_start_transfer`.
+    :py:func:`invenio_archivematica.tasks.oais_start_transfer`.
 
     The signal :py:data:`invenio_archivematica.signals.oais_transfer_failed`
-    is called with the record as function parameter.
+    is called with the sip as function parameter.
 
-    :param str rec_uuid: the UUID of the record
+    :param str uuid: the UUID of the sip
     """
-    ark = Archive.get_from_record(rec_uuid)
+    ark = Archive.get_from_sip(uuid)
     ark.status = ArchiveStatus.FAILED
+    ark.sip.archived = False
 
     db.session.commit()
-    oais_transfer_failed.send(Record(ark.record.json, ark.record))
+    oais_transfer_failed.send(SIP(ark.sip))
 
 
 @shared_task(ignore_result=True)
-def archive_new_records(days=30, hours=0, minutes=0, seconds=0, delay=True):
-    """Start the archive process for some records.
+def archive_new_sips(accession_id_factory, days=30, hours=0, minutes=0,
+                     seconds=0, delay=True):
+    """Start the archive process for some sip.
 
-    All the new records that haven't been changed since `nb_days` will be
+    All the new sip that have been created at least since `nb_days` will be
     archived.
 
     To trigger this task everyday at 1 am, you can add this variable in your
@@ -177,33 +171,39 @@ def archive_new_records(days=30, hours=0, minutes=0, seconds=0, delay=True):
     .. code-block:: python
 
         from celery.schedules import crontab
-        # archive all the new records that haven't been modified since 15 days
+        # archive all the new sip that haven't been modified since 15 days
         CELERYBEAT_SCHEDULE = {
-            'archive-records': {
-                'task': 'invenio_archivematica.tasks.archive_new_records',
+            'archive-sips': {
+                'task': 'invenio_archivematica.tasks.archive_new_sips',
                 'schedule': crontab(hour=1),
                 'args': [15, 0, 10] # older than 15 days and 10 minutes
             }
         }
 
-    :param int days: number of days that a new record must not have been
+    :param str accession_id_factory: the path to the factory to create the
+        accession_id of the archive. See
+        :py:func:`invenio_archivematica.factories.create_accession_id`. The
+        archive is sent to the function.
+    :param int days: number of days that a new sip must not have been
         modified to get archived.
     :param int hours: number of hours
     :param int minutes: number of minutes
     :param int seconds: number of seconds
     :param bool delay: tells if we should delay the transfers
     """
-    # first we get all the records we need to archive
-    begin_date = datetime.now() - timedelta(days=days,
-                                            hours=hours,
-                                            minutes=minutes,
-                                            seconds=seconds)
-    arks = Archive.query.join(RecordMetadata).filter(
+    # first we get all the sip we need to archive
+    begin_date = datetime.utcnow() - timedelta(days=days,
+                                               hours=hours,
+                                               minutes=minutes,
+                                               seconds=seconds)
+    arks = Archive.query.filter(
         Archive.status == ArchiveStatus.NEW,
-        RecordMetadata.updated <= str(begin_date)).all()
-    # we start the transfer for all the founded records
+        Archive.created <= str(begin_date)).all()
+    facto = import_string(accession_id_factory)
+    # we start the transfer for all the founded sip
     for ark in arks:
+        accession_id = facto(ark)
         if delay:
-            oais_start_transfer.delay(ark.record.id)
+            oais_start_transfer.delay(ark.sip.id, accession_id)
         else:
-            oais_start_transfer(ark.record.id)
+            oais_start_transfer(ark.sip.id, accession_id)

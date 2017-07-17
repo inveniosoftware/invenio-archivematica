@@ -26,10 +26,10 @@
 
 from __future__ import absolute_import, print_function
 
-from invenio_records.signals import after_record_insert, after_record_update
+from invenio_sipstore.signals import sipstore_created
 
 from . import config
-from .listeners import listener_record_created, listener_record_updated
+from .listeners import listener_sip_created
 
 
 class InvenioArchivematica(object):
@@ -59,6 +59,5 @@ class InvenioArchivematica(object):
                 app.config.setdefault(k, getattr(config, k))
 
     def init_listeners(self):
-        """Register the listener to invenio_record's signals."""
-        after_record_insert.connect(listener_record_created)
-        after_record_update.connect(listener_record_updated)
+        """Register the listener to invenio_sipstore's signals."""
+        sipstore_created.connect(listener_sip_created)

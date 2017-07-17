@@ -24,17 +24,14 @@
 
 """Test the listeners."""
 
-import uuid
-
 import pytest
-from invenio_records.api import Record
+from invenio_accounts.testutils import create_test_user
+from invenio_sipstore.api import SIP
 
-from invenio_archivematica.listeners import listener_record_created, \
-    listener_record_updated
 from invenio_archivematica.models import Archive, ArchiveStatus
 
 testdata = [
-    ('invenio_archivematica.factories.is_archivable_all',
+    ('invenio_archivematica.factories.is_archivable_default',
      ArchiveStatus.NEW),
     ('invenio_archivematica.factories.is_archivable_none',
      ArchiveStatus.IGNORED)
@@ -43,38 +40,17 @@ testdata = [
 
 @pytest.mark.parametrize("conf,expected_status", testdata)
 def test_listeners(conf, expected_status, app, db):
-    """Test listener_record_created and listener_record_updated functions."""
+    """Test listener_sip_created and listener_record_updated functions."""
     # first we change the is_archivable function
     app.config['ARCHIVEMATICA_ISARCHIVABLE_FACTORY'] = conf
 
     assert Archive.query.count() == 0
-    # let's create a record
-    recid = uuid.uuid4()
-    rec = Record.create({'title': 'This is a fake!'}, recid)
+    # let's create an SIP
+    user = create_test_user('test@example.org')
+    sip = SIP.create(True, user_id=user.id, agent={'test': 'test'})
     db.session.commit()
 
     assert Archive.query.count() == 1
-    ark = Archive.get_from_record(recid)
-    assert ark.record == rec.model
-    assert ark.status == expected_status
-
-    # we simulate that the record has been archived anyway :p
-    ark.status = ArchiveStatus.REGISTERED
-    # now we update the record
-    rec['author'] = 'ME'
-    rec.commit()
-    db.session.commit()
-    assert Archive.query.count() == 1
-    ark = Archive.get_from_record(recid)
-    assert ark.status == expected_status
-
-    # we delete the Archive object and update the record
-    db.session.delete(ark)
-    db.session.commit()
-    assert Archive.query.count() == 0
-    rec['summary'] = 'Very interesting book :)'
-    rec.commit()
-    db.session.commit()
-    assert Archive.query.count() == 1
-    ark = Archive.get_from_record(recid)
+    ark = Archive.get_from_sip(sip.id)
+    assert ark.sip.user.id == sip.user.id
     assert ark.status == expected_status

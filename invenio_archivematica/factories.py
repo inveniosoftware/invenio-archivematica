@@ -24,38 +24,34 @@
 
 """Factories used to customize the behavior of the module."""
 
-from os import mkdir
 from os.path import join
-from shutil import copyfile, rmtree
+from shutil import rmtree
 from subprocess import call
 from tempfile import mkdtemp
 
 from flask import current_app
-from invenio_pidstore.resolver import Resolver
-from invenio_records_files.api import Record
+from fs.opener import opener
+from invenio_sipstore.api import SIP
+from invenio_sipstore.archivers import BaseArchiver
 
 from invenio_archivematica.models import Archive
 
 
-def create_accession_id(record_pid, pid_type):
-    """Create an accession ID to store the record in Archivematica.
+def create_accession_id(ark):
+    """Create an accession ID to store the sip in Archivematica.
 
-    :param str record_pid: the PID of the record
-    :param str pid_type: the type of the PID ('recid'...)
-    :returns: the created ID
+    :param ark: the archive
+    :type ark: :py:class:`invenio_archivematica.models.Archive`
+    :returns: the created ID: SERVICE-SIP_UUID
     :rtype: str
     """
-    resolver = Resolver(pid_type=pid_type, getter=Record.get_record)
-    pid, record = resolver.resolve(record_pid)
-    return "{service}-{pid_type}-{pid}-{version}".format(
+    return "{service}-{uuid}".format(
         service=current_app.config['ARCHIVEMATICA_ORGANIZATION_NAME'],
-        pid_type=pid_type,
-        pid=record_pid,
-        version=record.revision_id)
+        uuid=ark.sip.id)
 
 
 def transfer_cp(uuid, config):
-    """Transfer the files contained in the record to a local destination.
+    """Transfer the files contained in the sip to a local destination.
 
     The transfer is done with a simple copy of files.
 
@@ -65,27 +61,23 @@ def transfer_cp(uuid, config):
     into the config variable
     :py:data:`invenio_archivematica.config.ARCHIVEMATICA_TRANSFER_FACTORY`.
 
-    :param str uuid: the id of the record containing files to transfer
+    :param str uuid: the id of the sip containing files to transfer
     :param config: the destination folder - this will be what is
         inside the config variable
         :py:data:`invenio_archivematica.config.ARCHIVEMATICA_TRANSFER_FOLDER`.
         It needs to be a absolute path to a folder
     """
-    record = Record.get_record(uuid)
-    ark = Archive.get_from_record(uuid)
-    dir_name = join(config, ark.accession_id)
-    try:
-        mkdir(dir_name)
-    except OSError:
-        pass
-    if record.files:
-        for fileobj in record.files:
-            copyfile(fileobj.file.storage().fileurl,
-                     join(dir_name, fileobj.key))
+    sip = SIP.get_sip(uuid)
+    ark = Archive.get_from_sip(uuid)
+    archiver = BaseArchiver(sip)
+    fs, path = opener.parse(config, writeable=True, create_dir=True)
+    fs = fs.opendir(path)
+    archiver.init(fs, ark.accession_id)
+    archiver.create()
 
 
 def transfer_rsync(uuid, config):
-    """Transfer the files contained in the record to the destination.
+    """Transfer the files contained in the sip to the destination.
 
     The transfer is done with a rsync. If transfer to remote, you need a valid
     ssh setup.
@@ -110,22 +102,17 @@ def transfer_rsync(uuid, config):
             'args': '-az'
         }
 
-    :param str uuid: the id of the record containing files to transfer
+    :param str uuid: the id of the sip containing files to transfer
     :param config: the config for rsync
     """
-    record = Record.get_record(uuid)
-    ark = Archive.get_from_record(uuid)
+    ark = Archive.get_from_sip(uuid)
 
     # first we copy everything in a temp folder
     ftmp = mkdtemp()
+    transfer_cp(uuid, ftmp)
+    # then we rsync to the final dest
     try:
-        dir_name = ark.accession_id
-        rectmp = join(ftmp, dir_name)
-        mkdir(rectmp)
-        for fileobj in record.files:
-            copyfile(fileobj.file.storage().fileurl,
-                     join(rectmp, fileobj.key))
-        # then we rsync to the final dest
+        rectmp = join(ftmp, ark.accession_id)
         if 'server' in config and 'user' in config:
             fdest = '{user}@{server}:{dest}'.format(user=config['user'],
                                                     server=config['server'],
@@ -142,17 +129,17 @@ def transfer_rsync(uuid, config):
     return ret
 
 
-def is_archivable_all(record):
-    """Tell if the given record should be archived or not.
+def is_archivable_default(sip):
+    """Tell if the given sip should be archived or not.
 
-    If this function returns True, the record will be archived later.
-    Otherwise, the record will never get archived.
+    If this function returns True, the sip will be archived later.
+    Otherwise, the sip will never get archived.
 
-    This function archive all the records.
+    This function returns the archived flag on the SIP.
     """
-    return True
+    return sip.archivable
 
 
-def is_archivable_none(record):
-    """Archive no records."""
+def is_archivable_none(sip):
+    """Archive no sip."""
     return False

@@ -33,12 +33,11 @@ import tempfile
 import pytest
 from flask import Flask
 from flask_babelex import Babel
+from invenio_accounts import InvenioAccounts
 from invenio_db import db as db_
 from invenio_db import InvenioDB
-from invenio_files_rest import InvenioFilesREST
-from invenio_pidstore import InvenioPIDStore
-from invenio_records import InvenioRecords
 from invenio_rest import InvenioREST
+from invenio_sipstore import InvenioSIPStore
 from sqlalchemy_utils.functions import create_database, database_exists, \
     drop_database
 
@@ -59,6 +58,7 @@ def base_app(instance_path):
     app_ = Flask('testapp', instance_path=instance_path)
     app_.config.update(
         SECRET_KEY='SECRET_KEY',
+        SIPSTORE_AGENT_JSONSCHEMA_ENABLED=False,
         SQLALCHEMY_DATABASE_URI=os.environ.get('SQLALCHEMY_DATABASE_URI',
                                                'sqlite:///test.db'),
         TESTING=True,
@@ -72,10 +72,9 @@ def base_app(instance_path):
 def app(base_app):
     """Flask full application fixture."""
     InvenioDB(base_app)
-    InvenioFilesREST(base_app)
-    InvenioPIDStore(base_app)
-    InvenioRecords(base_app)
+    InvenioAccounts(base_app)
     InvenioREST(base_app)
+    InvenioSIPStore(base_app)
     with base_app.app_context():
         yield base_app
 

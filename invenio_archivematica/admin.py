@@ -38,14 +38,14 @@ class ArchiveModelView(ModelView):
     can_view_details = True
     column_display_all_relations = True
     column_list = (
-        'record_id', 'record.updated', 'status', 'accession_id', 'aip_id'
+        'sip_id', 'sip.created', 'status', 'accession_id', 'archivematica_id'
     )
     column_labels = {
-        'record_id': 'ID of the Record',
-        'record.updated': 'Last update',
+        'sip_id': 'ID of the SIP',
+        'sip.created': 'Last update',
         'status': 'Status',
         'accession_id': 'AIP Accession ID',
-        'aip_id': 'AIP ID'
+        'archivematica_id': 'Archivematica ID'
     }
     page_size = 25
 

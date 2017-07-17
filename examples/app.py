@@ -57,7 +57,6 @@ To reset the example application run:
 from __future__ import absolute_import, print_function
 
 import os
-from os.path import dirname, join
 
 from flask import Flask
 from flask_babelex import Babel
@@ -66,11 +65,11 @@ from invenio_accounts import InvenioAccounts
 from invenio_db import InvenioDB
 from invenio_files_rest import InvenioFilesREST
 from invenio_pidstore import InvenioPIDStore
-from invenio_records import InvenioRecords
 from invenio_rest import InvenioREST
+from invenio_sipstore import InvenioSIPStore
 
 from invenio_archivematica import InvenioArchivematica
-from invenio_archivematica.views import b, blueprint
+from invenio_archivematica.views import b
 
 # Create Flask application
 app = Flask(__name__)
@@ -79,6 +78,7 @@ app.config.update(dict(
     CELERY_RESULT_BACKEND='redis://',
     REST_ENABLE_CORS=True,
     SECRET_KEY='CHANGEME',
+    SIPSTORE_AGENT_JSONSCHEMA_ENABLED=False,
     SQLALCHEMY_ECHO=False,
     SQLALCHEMY_DATABASE_URI=os.environ.get(
         'SQLALCHEMY_DATABASE_URI', 'sqlite:///test.db'
@@ -93,7 +93,7 @@ InvenioArchivematica(app)
 InvenioDB(app)
 InvenioFilesREST(app)
 InvenioPIDStore(app)
-InvenioRecords(app)
 InvenioREST(app)
+InvenioSIPStore(app)
 
 app.register_blueprint(b)

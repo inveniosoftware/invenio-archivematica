@@ -55,6 +55,8 @@ before_install:
 install:
   - "travis_retry pip install -r .travis-${REQUIREMENTS}-requirements.txt"
   - "travis_retry pip install -e .[all]"
+# TODO REMOVE WHEN SIPTORE HAS BEEN RELEASED
+  - "travis_retry pip install -U git+https://github.com/inveniosoftware/invenio-sipstore.git#egg=invenio-sipstore"
 
 script:
   - "./run-tests.sh"

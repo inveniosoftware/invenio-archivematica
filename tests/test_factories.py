@@ -24,16 +24,7 @@
 
 """Test the factories."""
 
-import tempfile
-import uuid
-from os.path import isdir, isfile, join
-from shutil import rmtree
-
-from invenio_files_rest.models import Bucket, Location
-from invenio_pidstore.models import PersistentIdentifier, PIDStatus
-from invenio_records_files.api import Record
-from invenio_records_files.models import RecordsBuckets
-from six import BytesIO
+from invenio_sipstore.models import SIP
 
 from invenio_archivematica import factories
 from invenio_archivematica.models import Archive
@@ -41,82 +32,35 @@ from invenio_archivematica.models import Archive
 
 def test_create_accessioned_id(db):
     """Test ``create_accessioned_id`` function."""
-    # First, we create a record
-    recid = uuid.uuid4()
-    PersistentIdentifier.create(
-        'recid',
-        '42',
-        object_type='rec',
-        object_uuid=recid,
-        status=PIDStatus.REGISTERED)
-    Record.create({'title': 'record test'}, recid)
-    accessioned_id = factories.create_accession_id('42', 'recid')
-    assert accessioned_id == 'CERN-recid-42-0'
+    # First, we create a SIP
+    sip = SIP.create()
+    ark = Archive.create(sip)
+    db.session.commit()
+    accessioned_id = factories.create_accession_id(ark)
+    assert accessioned_id == 'CERN-' + str(sip.id)
+
+
+def test_is_archivable_default(db):
+    """Test ``is_archivable_default`` function."""
+    sip1 = SIP.create(archivable=True)
+    sip2 = SIP.create(archivable=False)
+    assert factories.is_archivable_default(sip1)
+    assert not factories.is_archivable_default(sip2)
+
+
+def test_is_archivable_none(db):
+    """Test ``is_archivable_none`` function."""
+    sip1 = SIP.create(archivable=True)
+    sip2 = SIP.create(archivable=False)
+    assert not factories.is_archivable_none(sip1)
+    assert not factories.is_archivable_none(sip2)
 
 
 def test_transfer_cp(db):
     """Test factories.transfer_cp function."""
-    # we setup a file storage
-    tmppath = tempfile.mkdtemp()
-    db.session.add(Location(name='default', uri=tmppath, default=True))
-    db.session.commit()
-    # first we create a record
-    recid = uuid.uuid4()
-    PersistentIdentifier.create(
-        'recid',
-        '1337',
-        object_type='rec',
-        object_uuid=recid,
-        status=PIDStatus.REGISTERED)
-    record = Record.create({'title': 'record test'}, recid)
-    rec_dir = join(tmppath, factories.create_accession_id('1337', 'recid'))
-    Archive.get_from_record(recid).accession_id = rec_dir
-    # we add a file to the record
-    bucket = Bucket.create()
-    content = b'Aaah! A headcrab!!!\n'
-    RecordsBuckets.create(record=record.model, bucket=bucket)
-    record.files['crab.txt'] = BytesIO(content)
-    # test!
-    factories.transfer_cp(record.id, tmppath)
-    assert isdir(rec_dir)
-    assert isfile(join(rec_dir, 'crab.txt'))
-    with open(join(rec_dir, 'crab.txt'), "rb") as f:
-        assert f.read() == content
-    # finalization
-    rmtree(tmppath)
+    # TODO
 
 
 def test_transfer_rsync(db):
     """Test factories.transfer_rsync function."""
-    # we setup a file storage
-    tmppath = tempfile.mkdtemp()
-    db.session.add(Location(name='default', uri=tmppath, default=True))
-    db.session.commit()
-    # first we create a record
-    recid = uuid.uuid4()
-    PersistentIdentifier.create(
-        'recid',
-        '42',
-        object_type='rec',
-        object_uuid=recid,
-        status=PIDStatus.REGISTERED)
-    record = Record.create({'title': 'lambda'}, recid)
-    rec_dir = join(tmppath, factories.create_accession_id('42', 'recid'))
-    Archive.get_from_record(recid).accession_id = rec_dir
-    # we add a file to the record
-    bucket = Bucket.create()
-    content = b'Its on my head!!!\n'
-    RecordsBuckets.create(record=record.model, bucket=bucket)
-    record.files['zombie.txt'] = BytesIO(content)
-    # test!
-    config = {
-        'destination': tmppath,
-        'args': '-az'
-    }
-    factories.transfer_rsync(record.id, config)
-    assert isdir(rec_dir)
-    assert isfile(join(rec_dir, 'zombie.txt'))
-    with open(join(rec_dir, 'zombie.txt'), "rb") as f:
-        assert f.read() == content
-    # finalization
-    rmtree(tmppath)
+    # TODO

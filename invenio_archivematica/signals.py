@@ -29,9 +29,9 @@ from blinker import Namespace
 _signals = Namespace()
 
 oais_transfer_started = _signals.signal('oais_transfer_started')
-"""Signal sent each time a record has been transfered.
+"""Signal sent each time a sip has been transfered.
 
-Send the record as a parameter: :py:class:`invenio_records.api.Record`
+Send the sip as a parameter: :py:class:`invenio_sipstore.api.SIP`
 
 Example subscriber
 
@@ -39,8 +39,8 @@ Example subscriber
 
     from invenio_archivematica.models import Archive, ArchiveStatus
     def listener(sender, *args, **kwargs):
-        # sender is the record being archived
-        ark = Archive.get_from_record(sender.id)
+        # sender is the sip being archived
+        ark = Archive.get_from_sip(sender.id)
         assert ark.status == ArchiveStatus.PROCESSING
 
     from invenio_archivematica.signals import oais_transfer_started
@@ -48,7 +48,7 @@ Example subscriber
 """
 
 oais_transfer_processing = _signals.signal('oais_transfer_finished')
-"""Signal sent when a transfered record is being processed."""
+"""Signal sent when a transfered sip is being processed."""
 
 oais_transfer_finished = _signals.signal('oais_transfer_finished')
 """Signal sent when a transfer has finished."""
