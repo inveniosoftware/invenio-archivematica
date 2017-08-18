@@ -48,5 +48,12 @@ Archivematica is an open-source software used to create digital archives. The
 goal of this module is to create a link between Invenio and Archivematica, so
 Invenio can send records to Archivematica to archive them.
 
+Configuration
+-------------
+
+- setup the Invenio URL in the automation-tools
+- setup the Archivematica URL in the invenio-archivematica config
+- setup the spaces and locations in Archivematica dashboards / storage
+
 Further documentation is available on
 https://invenio-archivematica.readthedocs.io/
