@@ -74,6 +74,7 @@ def transfer_cp(uuid, config):
     fs = fs.opendir(path)
     archiver.init(fs, ark.accession_id)
     archiver.create()
+    return 0
 
 
 def transfer_rsync(uuid, config):

@@ -64,11 +64,11 @@ install_requires = [
     'Flask-BabelEx>=0.9.3',
     'Flask-CeleryExt>=0.3.0',
     'alembic>=0.9.3',
-    'invenio-admin==1.0.0b2',
+    'invenio-admin>=1.0.0b2',
     'invenio-db>=1.0.0b7',
-    'invenio-sipstore>=1.0.0a3',
     'invenio-files-rest>=1.0.0a17',
-    'invenio-rest[cors]>=1.0.0b1'
+    'invenio-rest[cors]>=1.0.0b1',
+    'invenio-sipstore>=1.0.0a7'
 ]
 
 packages = find_packages()

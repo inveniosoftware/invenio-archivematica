@@ -63,10 +63,12 @@ def oais_start_transfer(uuid, accession_id='', archivematica_id=None):
     # we start the transfer
     imp = current_app.config['ARCHIVEMATICA_TRANSFER_FACTORY']
     transfer = import_string(imp)
-    transfer(sip.id, current_app.config['ARCHIVEMATICA_TRANSFER_FOLDER'])
-
-    db.session.commit()
-    oais_transfer_started.send(sip)
+    ret = transfer(sip.id, current_app.config['ARCHIVEMATICA_TRANSFER_FOLDER'])
+    if ret == 0:
+        db.session.commit()
+        oais_transfer_started.send(sip)
+        return
+    oais_fail_transfer(uuid, accession_id)
 
 
 @shared_task(ignore_result=True)
