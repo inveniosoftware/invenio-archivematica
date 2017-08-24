@@ -46,7 +46,7 @@ from sqlalchemy_utils.functions import create_database, database_exists, \
     drop_database
 
 from invenio_archivematica import InvenioArchivematica
-from invenio_archivematica.views import blueprint
+from invenio_archivematica.views.rest import blueprint
 
 
 @pytest.yield_fixture()
@@ -112,7 +112,7 @@ def client(app):
         yield client
 
 
-@pytest.yield_fixture()
+@pytest.fixture()
 def oauth2(app, db):
     """Creates authentication tokens for test.
 
