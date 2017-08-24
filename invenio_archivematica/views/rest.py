@@ -22,26 +22,23 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-"""Invenio 3 module to connect Invenio to Archivematica."""
+"""Invenio-Archivematica REST API views."""
 
 from functools import wraps
 
 import requests
 from flask import Blueprint, Response, abort, current_app, jsonify, \
-    make_response, render_template, stream_with_context
-from flask_babelex import gettext as _
+    make_response, stream_with_context
 from invenio_access.permissions import Permission
 from invenio_db import db
 from invenio_oauth2server import require_api_auth, require_oauth_scopes
 from invenio_rest import ContentNegotiatedMethodView
-from invenio_sipstore.api import SIP
 from requests.exceptions import ConnectionError
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 from werkzeug.datastructures import Headers
 
 from invenio_archivematica.api import change_status_func
-from invenio_archivematica.factories import create_accession_id
 from invenio_archivematica.models import Archive as Archive_
 from invenio_archivematica.models import ArchiveStatus, status_converter
 from invenio_archivematica.permissions import _action2need_map
@@ -52,30 +49,6 @@ blueprint = Blueprint(
     __name__,
     url_prefix="/oais"
 )
-
-# TODO remove
-b = Blueprint(
-    'invenio_archivematica',
-    __name__,
-    url_prefix="/oais",
-    template_folder='templates'
-)
-
-
-@b.route("/")
-def index():
-    """Show the index."""
-    return render_template(
-        "invenio_archivematica/index.html",
-        module_name=_('Invenio-Archivematica'))
-
-
-@b.route("/test/<string:pid>/")
-def test(pid):
-    """Show a test page."""
-    return """<DOCTYPE html><html><head></head><body>
-    <h1>{}</h1>
-    </body></html>""".format(create_accession_id(pid, 'recid'))
 
 
 def pass_accession_id(f):

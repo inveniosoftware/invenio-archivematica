@@ -69,7 +69,7 @@ from invenio_rest import InvenioREST
 from invenio_sipstore import InvenioSIPStore
 
 from invenio_archivematica import InvenioArchivematica
-from invenio_archivematica.views import b
+from invenio_archivematica.views.ui import blueprint
 
 # Create Flask application
 app = Flask(__name__)
@@ -96,4 +96,4 @@ InvenioPIDStore(app)
 InvenioREST(app)
 InvenioSIPStore(app)
 
-app.register_blueprint(b)
+app.register_blueprint(blueprint)

@@ -34,8 +34,7 @@ history = open('CHANGES.rst').read()
 tests_require = [
     'check-manifest>=0.25',
     'coverage>=4.0',
-    'invenio-access>=1.0.0a11',
-    'invenio-accounts>=1.0.0b3',
+    'invenio-accounts>=1.0.0b9',
     'isort>=4.2.2',
     'pydocstyle>=1.0.0',
     'pytest-cache>=1.0',
@@ -64,10 +63,10 @@ install_requires = [
     'Flask-BabelEx>=0.9.3',
     'Flask-CeleryExt>=0.3.0',
     'alembic>=0.9.3',
-    'invenio-admin>=1.0.0b2',
+    'invenio-admin>=1.0.0b3',
     'invenio-access>=1.0.0b1',
-    'invenio-db>=1.0.0b7',
-    'invenio-files-rest>=1.0.0a17',
+    'invenio-db>=1.0.0b8',
+    'invenio-files-rest>=1.0.0a18',
     'invenio-oauth2server>=1.0.0b1',
     'invenio-rest[cors]>=1.0.0b1',
     'invenio-sipstore>=1.0.0a7'
@@ -119,10 +118,10 @@ setup(
         # 'invenio_assets.bundles': [],
         # 'invenio_base.api_apps': [],
         'invenio_base.api_blueprints': [
-            'invenio_archivematica = invenio_archivematica.views:blueprint',
+            'invenio_archivematica = invenio_archivematica.views.rest:blueprint',
         ],
         'invenio_base.blueprints': [
-            'invenio_archivematica = invenio_archivematica.views:b',
+            'invenio_archivematica = invenio_archivematica.views.ui:blueprint',
         ],
         'invenio_celery.tasks': [
             'invenio_archivematica = invenio_archivematica.tasks'
