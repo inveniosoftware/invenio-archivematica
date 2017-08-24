@@ -29,14 +29,16 @@ from __future__ import absolute_import, print_function
 from functools import partial, wraps
 
 import requests
-from flask import Blueprint, abort, current_app, jsonify, make_response, \
-    render_template
+from flask import Blueprint, Response, abort, current_app, jsonify, \
+    make_response, render_template, stream_with_context
 from flask_babelex import gettext as _
 from invenio_db import db
 from invenio_rest import ContentNegotiatedMethodView
 from invenio_sipstore.api import SIP
+from requests.exceptions import ConnectionError
 from webargs import fields
 from webargs.flaskparser import use_kwargs
+from werkzeug.datastructures import Headers
 
 from invenio_archivematica.api import change_status_func
 from invenio_archivematica.factories import create_accession_id
@@ -44,7 +46,7 @@ from invenio_archivematica.models import Archive as Archive_
 from invenio_archivematica.models import ArchiveStatus, status_converter
 
 blueprint = Blueprint(
-    'invenio_archivematica',
+    'invenio_archivematica_api',
     __name__,
     url_prefix="/oais"
 )
@@ -206,7 +208,49 @@ class Archive(ContentNegotiatedMethodView):
         return jsonify({}), response.status_code
 
 
+class ArchiveDownload(ContentNegotiatedMethodView):
+    """Stream file from Archivematica."""
+
+    @pass_accession_id
+    def get(self, archive):
+        """Send the archive object as a file to the client.
+
+        :return: a file taken from archivematica.
+        """
+        if not archive.status == ArchiveStatus.REGISTERED \
+                or not archive.archivematica_id:
+            return make_response('Archive has not been registered yet.', 412)
+        try:
+            url = '{base}/api/v2/file/{uuid}/download/'.format(
+                base=current_app.config['ARCHIVEMATICA_STORAGE_URL'],
+                uuid=archive.archivematica_id)
+            params = {
+                'username': current_app.config[
+                    'ARCHIVEMATICA_STORAGE_USER'],
+                'api_key': current_app.config[
+                    'ARCHIVEMATICA_STORAGE_API_KEY']
+            }
+            response = requests.get(url, params=params, stream=True)
+            if response.ok:
+                headers = Headers()
+                for key, value in response.headers.items():
+                    headers.add(key, value)
+                return Response(stream_with_context(
+                    response.iter_content(chunk_size=10*1024)),
+                    content_type='application/octet-stream',
+                    headers=headers)
+            # problem
+            return make_response('', response.status_code)
+        except ConnectionError as e:
+            return make_response('Connection problem with Archivematica', 520)
+
+
 blueprint.add_url_rule(
     '/archive/<string:accession_id>/',
     view_func=Archive.as_view('archive_api')
+)
+
+blueprint.add_url_rule(
+    '/archive/<string:accession_id>/download/',
+    view_func=ArchiveDownload.as_view('download_api')
 )

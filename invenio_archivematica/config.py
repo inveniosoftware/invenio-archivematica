@@ -62,3 +62,12 @@ ARCHIVEMATICA_DASHBOARD_USER = 'invenio'
 
 ARCHIVEMATICA_DASHBOARD_API_KEY = 'change me'
 """The API key to use with the user above."""
+
+ARCHIVEMATICA_STORAGE_URL = 'http://localhost:8001'
+"""The URL to Archivematica Storage."""
+
+ARCHIVEMATICA_STORAGE_USER = 'invenio'
+"""The user to connect to Archivematica Storage."""
+
+ARCHIVEMATICA_STORAGE_API_KEY = 'change me'
+"""The API key to use with the user above."""

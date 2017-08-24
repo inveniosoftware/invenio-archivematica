@@ -343,6 +343,7 @@ texinfo_documents = [
 intersphinx_mapping = {
     'python': ('https://docs.python.org/', None),
     'invenio_sipstore': ('https://invenio-sipstore.readthedocs.io/en/latest/', None),
+    'flask': ('http://flask.pocoo.org/docs/0.12/', None),
     # TODO: Configure external documentation references, eg:
     # 'Flask-Admin': ('https://flask-admin.readthedocs.io/en/latest/', None),
 }

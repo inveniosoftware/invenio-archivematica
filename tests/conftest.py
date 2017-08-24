@@ -42,6 +42,7 @@ from sqlalchemy_utils.functions import create_database, database_exists, \
     drop_database
 
 from invenio_archivematica import InvenioArchivematica
+from invenio_archivematica.views import blueprint
 
 
 @pytest.yield_fixture()
@@ -62,6 +63,7 @@ def base_app(instance_path):
         SQLALCHEMY_DATABASE_URI=os.environ.get('SQLALCHEMY_DATABASE_URI',
                                                'sqlite:///test.db'),
         TESTING=True,
+        SERVER_NAME='invenio.org',
     )
     Babel(app_)
     InvenioArchivematica(app_)
@@ -75,6 +77,7 @@ def app(base_app):
     InvenioAccounts(base_app)
     InvenioREST(base_app)
     InvenioSIPStore(base_app)
+    base_app.register_blueprint(blueprint)
     with base_app.app_context():
         yield base_app
 
@@ -89,3 +92,10 @@ def db(app):
     db_.session.remove()
     db_.drop_all()
     drop_database(str(db_.engine.url))
+
+
+@pytest.yield_fixture()
+def client(app):
+    """Flask client fixture."""
+    with app.test_client() as client:
+        yield client
