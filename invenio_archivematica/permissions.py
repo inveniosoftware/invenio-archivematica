@@ -22,39 +22,34 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-"""Module tests."""
+"""Permissions for archives using Invenio-Archivematica."""
 
-from __future__ import absolute_import, print_function
+from functools import partial
 
-from flask import Flask
+from invenio_access.permissions import ParameterizedActionNeed
 
-from invenio_archivematica import InvenioArchivematica
-from invenio_archivematica.views import b
+#
+# Action needs
+#
 
+ArchiveRead = partial(ParameterizedActionNeed, 'archive-read')
+"""Action needed: read archive"""
 
-def test_version():
-    """Test version import."""
-    from invenio_archivematica import __version__
-    assert __version__
+ArchiveWrite = partial(ParameterizedActionNeed, 'archive-write')
+"""Action needed: write archive"""
 
+#
+# Global action needs
+#
 
-def test_init():
-    """Test extension initialization."""
-    app = Flask('testapp')
-    ext = InvenioArchivematica(app)
-    assert 'invenio-archivematica' in app.extensions
+archive_read = ArchiveRead(None)
+"""Action needed: read all archives."""
 
-    app = Flask('testapp')
-    ext = InvenioArchivematica()
-    assert 'invenio-archivematica' not in app.extensions
-    ext.init_app(app)
-    assert 'invenio-archivematica' in app.extensions
+archive_write = ArchiveWrite(None)
+"""Action needed: write all archives."""
 
 
-def test_view(app, oauth2):
-    """Test view."""
-    app.register_blueprint(b)
-    with app.test_client() as client:
-        res = client.get("/oais/")
-        assert res.status_code == 200
-        assert 'Welcome to Invenio-Archivematica' in str(res.data)
+_action2need_map = {
+    'archive-read': ArchiveRead,
+    'archive-write': ArchiveWrite
+}

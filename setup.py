@@ -40,7 +40,6 @@ tests_require = [
     'pydocstyle>=1.0.0',
     'pytest-cache>=1.0',
     'pytest-cov>=1.8.0',
-    'pytest-mock>=1.6.0',
     'pytest-pep8>=1.0.6',
     'pytest>=2.8.3',
 ]
@@ -66,8 +65,10 @@ install_requires = [
     'Flask-CeleryExt>=0.3.0',
     'alembic>=0.9.3',
     'invenio-admin>=1.0.0b2',
+    'invenio-access>=1.0.0b1',
     'invenio-db>=1.0.0b7',
     'invenio-files-rest>=1.0.0a17',
+    'invenio-oauth2server>=1.0.0b1',
     'invenio-rest[cors]>=1.0.0b1',
     'invenio-sipstore>=1.0.0a7'
 ]
@@ -106,7 +107,10 @@ setup(
             'messages = invenio_archivematica',
         ],
         # TODO: Edit these entry points to fit your needs.
-        # 'invenio_access.actions': [],
+        'invenio_access.actions': [
+            'archive_read = invenio_archivematica.permissions:archive_read',
+            'archive_write = invenio_archivematica.permissions:archive_write',
+        ],
         # 'invenio_admin.actions': [],
         'invenio_admin.views': [
             'invenio_archivematica_archive = '
@@ -126,6 +130,9 @@ setup(
         # 'invenio_db.models': [],
         # 'invenio_pidstore.minters': [],
         # 'invenio_records.jsonresolver': [],
+        'invenio_oauth2server.scopes': [
+            'archivematica_archive = invenio_archivematica.scopes:archive_scope'
+        ],
     },
     extras_require=extras_require,
     install_requires=install_requires,

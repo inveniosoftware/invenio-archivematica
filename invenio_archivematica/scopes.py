@@ -22,39 +22,24 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-"""Module tests."""
+"""OAuth2 scopes for Invenio-Archivematica."""
 
-from __future__ import absolute_import, print_function
-
-from flask import Flask
-
-from invenio_archivematica import InvenioArchivematica
-from invenio_archivematica.views import b
+from flask_babelex import lazy_gettext as _
+from invenio_oauth2server.models import Scope
 
 
-def test_version():
-    """Test version import."""
-    from invenio_archivematica import __version__
-    assert __version__
+class ArchiveScope(Scope):
+    """Basic deposit scope."""
+
+    def __init__(self, id_, *args, **kwargs):
+        """Define the scope."""
+        super(ArchiveScope, self).__init__(
+            id_='archive:{0}'.format(id_),
+            group='deposit', *args, **kwargs
+        )
 
 
-def test_init():
-    """Test extension initialization."""
-    app = Flask('testapp')
-    ext = InvenioArchivematica(app)
-    assert 'invenio-archivematica' in app.extensions
-
-    app = Flask('testapp')
-    ext = InvenioArchivematica()
-    assert 'invenio-archivematica' not in app.extensions
-    ext.init_app(app)
-    assert 'invenio-archivematica' in app.extensions
-
-
-def test_view(app, oauth2):
-    """Test view."""
-    app.register_blueprint(b)
-    with app.test_client() as client:
-        res = client.get("/oais/")
-        assert res.status_code == 200
-        assert 'Welcome to Invenio-Archivematica' in str(res.data)
+archive_scope = ArchiveScope(
+    'actions',
+    help_text=_('Allow to view, edit and download Archives.'))
+"""Allow to view, edit and download Archives."""

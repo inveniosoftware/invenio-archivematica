@@ -24,15 +24,15 @@
 
 """Invenio 3 module to connect Invenio to Archivematica."""
 
-from __future__ import absolute_import, print_function
-
-from functools import partial, wraps
+from functools import wraps
 
 import requests
 from flask import Blueprint, Response, abort, current_app, jsonify, \
     make_response, render_template, stream_with_context
 from flask_babelex import gettext as _
+from invenio_access.permissions import Permission
 from invenio_db import db
+from invenio_oauth2server import require_api_auth, require_oauth_scopes
 from invenio_rest import ContentNegotiatedMethodView
 from invenio_sipstore.api import SIP
 from requests.exceptions import ConnectionError
@@ -44,6 +44,8 @@ from invenio_archivematica.api import change_status_func
 from invenio_archivematica.factories import create_accession_id
 from invenio_archivematica.models import Archive as Archive_
 from invenio_archivematica.models import ArchiveStatus, status_converter
+from invenio_archivematica.permissions import _action2need_map
+from invenio_archivematica.scopes import archive_scope
 
 blueprint = Blueprint(
     'invenio_archivematica_api',
@@ -88,6 +90,22 @@ def pass_accession_id(f):
     return decorate
 
 
+def check_permission(permission):
+    """Decorate to check permission access.
+
+    This decorator needs to be after pass_accession_id
+    """
+    def decorator(f):
+        @wraps(f)
+        def decoratee(*args, **kwargs):
+            parameter = kwargs['archive'].accession_id
+            perm = Permission(_action2need_map[permission](parameter))
+            with perm.require(http_exception=403):
+                return f(*args, **kwargs)
+        return decoratee
+    return decorator
+
+
 def validate_status(status):
     """Accept only valid status."""
     try:
@@ -124,7 +142,10 @@ class Archive(ContentNegotiatedMethodView):
             'archivematica_id': ark.archivematica_id
         })
 
+    @require_api_auth()
+    @require_oauth_scopes(archive_scope.id)
     @pass_accession_id
+    @check_permission('archive-write')
     @use_kwargs({
         'status': fields.Str(
             load_from='status',
@@ -153,7 +174,10 @@ class Archive(ContentNegotiatedMethodView):
                                            archive.archivematica_id)
         return self._to_json(archive)
 
+    @require_api_auth()
+    @require_oauth_scopes(archive_scope.id)
     @pass_accession_id
+    @check_permission('archive-read')
     @use_kwargs({
         'real_status': fields.Boolean(
             load_from='realStatus',
@@ -211,7 +235,10 @@ class Archive(ContentNegotiatedMethodView):
 class ArchiveDownload(ContentNegotiatedMethodView):
     """Stream file from Archivematica."""
 
+    @require_api_auth()
+    @require_oauth_scopes(archive_scope.id)
     @pass_accession_id
+#    @check_permission('archive-read')
     def get(self, archive):
         """Send the archive object as a file to the client.
 

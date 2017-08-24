@@ -62,18 +62,14 @@ def transfer_cp(uuid, config):
     :py:data:`invenio_archivematica.config.ARCHIVEMATICA_TRANSFER_FACTORY`.
 
     :param str uuid: the id of the sip containing files to transfer
-    :param config: the destination folder - this will be what is
-        inside the config variable
+    :param config: can be empty. It will have the content of the variable
         :py:data:`invenio_archivematica.config.ARCHIVEMATICA_TRANSFER_FOLDER`.
-        It needs to be a absolute path to a folder
+        However, it will use the export folder set in
+        :py:data:`invenio_sipstore.config.SIPSTORE_ARCHIVER_LOCATION_NAME`
     """
     sip = SIP.get_sip(uuid)
-    ark = Archive.get_from_sip(uuid)
     archiver = BaseArchiver(sip)
-    fs, path = opener.parse(config, writeable=True, create_dir=True)
-    fs = fs.opendir(path)
-    archiver.init(fs, ark.accession_id)
-    archiver.create()
+    archiver.write_all_files()
     return 0
 
 
@@ -106,27 +102,27 @@ def transfer_rsync(uuid, config):
     :param str uuid: the id of the sip containing files to transfer
     :param config: the config for rsync
     """
-    ark = Archive.get_from_sip(uuid)
+    sip = SIP.get_sip(uuid)
 
     # first we copy everything in a temp folder
-    ftmp = mkdtemp()
-    transfer_cp(uuid, ftmp)
+    archiver = BaseArchiver(sip)
+    archiver.write_all_files()
+
     # then we rsync to the final dest
-    try:
-        rectmp = join(ftmp, ark.accession_id)
-        if 'server' in config and 'user' in config:
-            fdest = '{user}@{server}:{dest}'.format(user=config['user'],
+    src_path = archiver.get_fullpath('')
+    dest_path = config['destination']
+    if 'server' in config and 'user' in config:
+        dest_path = '{user}@{server}:{dest}'.format(user=config['user'],
                                                     server=config['server'],
-                                                    dest=config['destination'])
-        else:
-            fdest = config['destination']
+                                                    dest=dest_path)
+    try:
         ret = call(['rsync',
                     config['args'],
-                    rectmp,
-                    fdest])
+                    src_path,
+                    dest_path])
     # we remove the temp folder
     finally:
-        rmtree(ftmp)
+        rmtree(src_path)
     return ret
 
 
