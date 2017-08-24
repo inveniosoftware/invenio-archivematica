@@ -33,9 +33,13 @@ import tempfile
 import pytest
 from flask import Flask
 from flask_babelex import Babel
+from flask_breadcrumbs import Breadcrumbs
+from invenio_access import InvenioAccess
 from invenio_accounts import InvenioAccounts
 from invenio_db import db as db_
 from invenio_db import InvenioDB
+from invenio_oauth2server import InvenioOAuth2Server, InvenioOAuth2ServerREST
+from invenio_oauth2server.views import server_blueprint
 from invenio_rest import InvenioREST
 from invenio_sipstore import InvenioSIPStore
 from sqlalchemy_utils.functions import create_database, database_exists, \
@@ -58,12 +62,14 @@ def base_app(instance_path):
     """Flask application fixture."""
     app_ = Flask('testapp', instance_path=instance_path)
     app_.config.update(
+        OAUTH2_CACHE_TYPE='simple',
+        OAUTHLIB_INSECURE_TRANSPORT=True,
         SECRET_KEY='SECRET_KEY',
+        SERVER_NAME='invenio.org',
         SIPSTORE_AGENT_JSONSCHEMA_ENABLED=False,
         SQLALCHEMY_DATABASE_URI=os.environ.get('SQLALCHEMY_DATABASE_URI',
                                                'sqlite:///test.db'),
         TESTING=True,
-        SERVER_NAME='invenio.org',
     )
     Babel(app_)
     InvenioArchivematica(app_)
@@ -73,10 +79,15 @@ def base_app(instance_path):
 @pytest.yield_fixture()
 def app(base_app):
     """Flask full application fixture."""
+    Breadcrumbs(base_app)
     InvenioDB(base_app)
+    InvenioAccess(base_app)
     InvenioAccounts(base_app)
+    InvenioOAuth2Server(base_app)
+    InvenioOAuth2ServerREST(base_app)
     InvenioREST(base_app)
     InvenioSIPStore(base_app)
+    base_app.register_blueprint(server_blueprint)
     base_app.register_blueprint(blueprint)
     with base_app.app_context():
         yield base_app
@@ -99,3 +110,31 @@ def client(app):
     """Flask client fixture."""
     with app.test_client() as client:
         yield client
+
+
+@pytest.yield_fixture()
+def oauth2(app, db):
+    """Creates authentication tokens for test.
+
+    Add these attributes in the app object and return app:
+    - user: a fake user that have authorization to archive_read and write
+    - token: api token for user
+    """
+    from invenio_access.models import ActionUsers
+    from invenio_oauth2server.models import Token
+
+    from invenio_archivematica.permissions import archive_read, archive_write
+
+    datastore = app.extensions['security'].datastore
+    app.user = datastore.create_user(
+        email='info@inveniosoftware.org', password='tester',
+        active=True)
+    db.session.commit()
+    db.session.add(ActionUsers.allow(archive_read, user=app.user))
+    db.session.add(ActionUsers.allow(archive_write, user=app.user))
+    app.token = Token.create_personal(
+        'test-', app.user.id, scopes=['archive:actions'], is_internal=True
+    ).access_token
+    db.session.commit()
+
+    return app

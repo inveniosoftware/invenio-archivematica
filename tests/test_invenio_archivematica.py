@@ -51,7 +51,7 @@ def test_init():
     assert 'invenio-archivematica' in app.extensions
 
 
-def test_view(app):
+def test_view(app, oauth2):
     """Test view."""
     app.register_blueprint(b)
     with app.test_client() as client:
