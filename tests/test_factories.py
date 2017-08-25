@@ -24,7 +24,12 @@
 
 """Test the factories."""
 
-from invenio_sipstore.models import SIP
+import json
+from os import path
+
+from invenio_files_rest.models import FileInstance
+from invenio_sipstore.models import SIP, SIPFile, SIPMetadata, SIPMetadataType
+from six import BytesIO
 
 from invenio_archivematica import factories
 from invenio_archivematica.models import Archive
@@ -56,11 +61,86 @@ def test_is_archivable_none(db):
     assert not factories.is_archivable_none(sip2)
 
 
-def test_transfer_cp(db):
+def test_transfer_cp(app, db, location):
     """Test factories.transfer_cp function."""
-    # TODO
+    # config
+    app.config['SIPSTORE_ARCHIVER_DIRECTORY_BUILDER'] = \
+        'helpers:archive_directory_builder'
+    app.config['SIPSTORE_ARCHIVER_METADATA_TYPES'] = ['test']
+    # SIP
+    sip = SIP.create()
+    # SIPMetadataType
+    mtype = SIPMetadataType(title='Test', name='test', format='json')
+    db.session.add(mtype)
+    # SIPMetadata
+    mcontent = {'title': 'title', 'author': 'me'}
+    meth = SIPMetadata(sip=sip, type=mtype, content=json.dumps(mcontent))
+    db.session.add(meth)
+    # SIPFile
+    f = FileInstance.create()
+    fcontent = b'weighted companion cube\n'
+    f.set_contents(BytesIO(fcontent), default_location=location.name)
+    sfile = SIPFile(sip=sip, file=f, filepath='portal.txt')
+    db.session.add(sfile)
+    db.session.commit()
+
+    # EXPORT
+    factories.transfer_cp(sip.id, None)
+
+    # TEST
+    folder = path.join(location.uri, 'test')
+    assert path.isdir(folder)
+    assert path.isdir(path.join(folder, 'files'))
+    assert path.isfile(path.join(folder, 'files', 'portal.txt'))
+    assert path.isdir(path.join(folder, 'metadata'))
+    assert path.isfile(path.join(folder, 'metadata', 'test.json'))
+    with open(path.join(folder, 'files', 'portal.txt'), 'rb') as fp:
+        assert fp.read() == fcontent
+    with open(path.join(folder, 'metadata', 'test.json'), 'r') as fp:
+        assert json.loads(fp.read()) == mcontent
 
 
-def test_transfer_rsync(db):
+def test_transfer_rsync(app, db, location):
     """Test factories.transfer_rsync function."""
-    # TODO
+    # config
+    app.config['SIPSTORE_ARCHIVER_DIRECTORY_BUILDER'] = \
+        'helpers:archive_directory_builder'
+    app.config['SIPSTORE_ARCHIVER_METADATA_TYPES'] = ['test']
+    # SIP
+    sip = SIP.create()
+    # SIPMetadataType
+    mtype = SIPMetadataType(title='Test', name='test', format='json')
+    db.session.add(mtype)
+    # SIPMetadata
+    mcontent = {'title': 'title', 'author': 'me'}
+    meth = SIPMetadata(sip=sip, type=mtype, content=json.dumps(mcontent))
+    db.session.add(meth)
+    # SIPFile
+    f = FileInstance.create()
+    fcontent = b'weighted companion cube\n'
+    f.set_contents(BytesIO(fcontent), default_location=location.name)
+    sfile = SIPFile(sip=sip, file=f, filepath='portal.txt')
+    db.session.add(sfile)
+    db.session.commit()
+
+    # EXPORT
+    folder = path.join(location.uri, 'lulz')
+    params = {
+        'server': '',
+        'user': '',
+        'destination': folder,
+        'args': '-az'
+    }
+    factories.transfer_rsync(sip.id, params)
+
+    # TEST
+    assert not path.exists(path.join(location.uri, 'test'))
+    assert path.isdir(folder)
+    assert path.isdir(path.join(folder, 'files'))
+    assert path.isfile(path.join(folder, 'files', 'portal.txt'))
+    assert path.isdir(path.join(folder, 'metadata'))
+    assert path.isfile(path.join(folder, 'metadata', 'test.json'))
+    with open(path.join(folder, 'files', 'portal.txt'), 'rb') as fp:
+        assert fp.read() == fcontent
+    with open(path.join(folder, 'metadata', 'test.json'), 'r') as fp:
+        assert json.loads(fp.read()) == mcontent

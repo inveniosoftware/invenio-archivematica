@@ -38,6 +38,8 @@ from invenio_access import InvenioAccess
 from invenio_accounts import InvenioAccounts
 from invenio_db import db as db_
 from invenio_db import InvenioDB
+from invenio_files_rest import InvenioFilesREST
+from invenio_files_rest.models import Location
 from invenio_oauth2server import InvenioOAuth2Server, InvenioOAuth2ServerREST
 from invenio_oauth2server.views import server_blueprint
 from invenio_rest import InvenioREST
@@ -83,6 +85,7 @@ def app(base_app):
     InvenioDB(base_app)
     InvenioAccess(base_app)
     InvenioAccounts(base_app)
+    InvenioFilesREST(base_app)
     InvenioOAuth2Server(base_app)
     InvenioOAuth2ServerREST(base_app)
     InvenioREST(base_app)
@@ -103,6 +106,22 @@ def db(app):
     db_.session.remove()
     db_.drop_all()
     drop_database(str(db_.engine.url))
+
+
+@pytest.yield_fixture()
+def location(app, db):
+    """Define a location to write SIPs with factories."""
+    path = os.path.abspath('./tmp/')
+    try:
+        os.mkdir(path)
+    except:
+        pass
+    loc = Location(name='archive', uri=path, default=True)
+    db.session.add(loc)
+    db.session.commit()
+    app.config['SIPSTORE_ARCHIVER_LOCATION_NAME'] = 'archive'
+    yield loc
+    shutil.rmtree(path)
 
 
 @pytest.yield_fixture()

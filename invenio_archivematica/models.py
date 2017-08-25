@@ -101,12 +101,19 @@ def status_converter(status, aip_processing=False):
         transfer
     """
     statuses = {
-        'FAILED': ArchiveStatus.FAILED,
-        'REJECTED': ArchiveStatus.FAILED,
-        'USER_INPUT': ArchiveStatus.FAILED,
+        'AIP_PROCESSING': ArchiveStatus.PROCESSING_AIP,
         'COMPLETE': ArchiveStatus.REGISTERED,
+        'DELETED': ArchiveStatus.DELETED,
+        'FAILED': ArchiveStatus.FAILED,
+        'IGNORED': ArchiveStatus.IGNORED,
+        'NEW': ArchiveStatus.NEW,
+        'PROCESSING_AIP': ArchiveStatus.PROCESSING_AIP,
+        'PROCESSING_TRANSFER': ArchiveStatus.PROCESSING_TRANSFER,
+        'REGISTERED': ArchiveStatus.REGISTERED,
+        'REJECTED': ArchiveStatus.FAILED,
         'SIP_PROCESSING': ArchiveStatus.PROCESSING_TRANSFER,
-        'AIP_PROCESSING': ArchiveStatus.PROCESSING_AIP
+        'USER_INPUT': ArchiveStatus.FAILED,
+        'WAITING': ArchiveStatus.WAITING
     }
     if status == 'PROCESSING' and aip_processing:
         status = 'AIP_PROCESSING'

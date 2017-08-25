@@ -100,7 +100,8 @@ class Archive(ContentNegotiatedMethodView):
         kwargs['default_media_type'] = 'application/json'
         super(Archive, self).__init__(**kwargs)
 
-    def _to_json(self, ark):
+    @staticmethod
+    def _to_json(ark):
         """Return the archive as a JSON object.
 
         Used to return JSON as an answer.
