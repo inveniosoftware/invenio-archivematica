@@ -26,7 +26,8 @@
 
 from invenio_archivematica.models import ArchiveStatus
 from invenio_archivematica.tasks import oais_fail_transfer, \
-    oais_finish_transfer, oais_process_transfer, oais_start_transfer
+    oais_finish_transfer, oais_process_aip, oais_process_transfer, \
+    oais_start_transfer
 
 
 def start_transfer(sip, accession_id, archivematica_id=None):

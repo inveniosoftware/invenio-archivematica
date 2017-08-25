@@ -79,6 +79,64 @@ def test_Archive_get_200(db, client, oauth2):
         and result['archivematica_id'] == str(ark.archivematica_id)
 
 
+def test_Archive_get_realstatus_transfer(db, client, oauth2):
+    """Test the Archive's get method with transfer processing."""
+    sip = SIP.create()
+    ark = Archive.create(sip=sip, accession_id='id',
+                         archivematica_id=uuid.uuid4())
+    ark.status = ArchiveStatus.WAITING
+    db.session.commit()
+
+    mock_response = Response()
+    mock_response.status_code = 200
+    mock_response._content = json.dumps({
+        'status': 'SIP_PROCESSING'
+    }).encode('utf-8')
+    with patch('requests.get', return_value=mock_response):
+        response = client.get(url_for(
+            'invenio_archivematica_api.archive_api',
+            accession_id=ark.accession_id,
+            access_token=oauth2.token),
+                              data=json.dumps({'realStatus': True}),
+                              content_type='application/json')
+    assert response.status_code == 200
+    result = json.loads(response.data.decode('utf-8'))
+    assert 'sip_id' in result and result['sip_id'] == str(sip.id)
+    assert 'status' in result and result['status'] == 'PROCESSING_TRANSFER'
+    assert 'accession_id' in result and result['accession_id'] == 'id'
+    assert 'archivematica_id' in result \
+        and result['archivematica_id'] == str(ark.archivematica_id)
+
+
+def test_Archive_get_realstatus_ingest(db, client, oauth2):
+    """Test the Archive's get method with ingest finished."""
+    sip = SIP.create()
+    ark = Archive.create(sip=sip, accession_id='id',
+                         archivematica_id=uuid.uuid4())
+    ark.status = ArchiveStatus.WAITING
+    db.session.commit()
+
+    new_uuid = str(uuid.uuid4())
+    mock_response = Response()
+    mock_response.status_code = 200
+    mock_response._content = json.dumps({'status': 'COMPLETE',
+                                         'sip_uuid': new_uuid}).encode('utf-8')
+    with patch('requests.get', return_value=mock_response):
+        response = client.get(url_for(
+            'invenio_archivematica_api.archive_api',
+            accession_id=ark.accession_id,
+            access_token=oauth2.token),
+                              data=json.dumps({'realStatus': True}),
+                              content_type='application/json')
+    assert response.status_code == 200
+    result = json.loads(response.data.decode('utf-8'))
+    assert 'sip_id' in result and result['sip_id'] == str(sip.id)
+    assert 'status' in result and result['status'] == 'REGISTERED'
+    assert 'accession_id' in result and result['accession_id'] == 'id'
+    assert 'archivematica_id' in result \
+        and result['archivematica_id'] == new_uuid
+
+
 def test_Archive_get_status_code(db, client, oauth2):
     """Test the Archive's get method with error on Archivematica."""
     sip = SIP.create()
