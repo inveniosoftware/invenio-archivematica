@@ -32,6 +32,7 @@ from flask import Blueprint, render_template
 from flask_babelex import gettext as _
 
 from invenio_archivematica.factories import create_accession_id
+from invenio_archivematica.models import Archive
 
 blueprint = Blueprint(
     'invenio_archivematica',
@@ -49,9 +50,10 @@ def index():
         module_name=_('Invenio-Archivematica'))
 
 
-@blueprint.route("/test/<string:pid>/")
-def test(pid):
+@blueprint.route("/test/<string:accession_id>/")
+def test(accession_id):
     """Show a test page."""
+    ark = Archive.get_from_accession_id(accession_id)
     return """<DOCTYPE html><html><head></head><body>
     <h1>{}</h1>
-    </body></html>""".format(create_accession_id(pid, 'recid'))
+    </body></html>""".format(create_accession_id(ark))

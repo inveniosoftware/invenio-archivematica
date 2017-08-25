@@ -35,7 +35,7 @@ from invenio_archivematica.tasks import archive_new_sips, oais_fail_transfer, \
     oais_start_transfer
 
 
-def test_oais_start_transfer(db):
+def test_oais_start_transfer(app, db, location):
     """Test the oais_start_transfer function."""
     assert Archive.query.count() == 0
     # let's create a SIP
@@ -48,14 +48,17 @@ def test_oais_start_transfer(db):
     ark = Archive.get_from_sip(sip.id)
     assert ark.status == ArchiveStatus.WAITING
     assert ark.accession_id == '1991'
-    # we try the case where no archive exist
+    # we try the case where no archive exist and transfer fails
     db.session.delete(ark)
     db.session.commit()
+    app.config['ARCHIVEMATICA_TRANSFER_FACTORY'] = 'helpers:transfer_fail'
     assert Archive.query.count() == 0
     oais_start_transfer(sip.id, '1991')
+    ark = Archive.get_from_sip(sip.id)
     assert Archive.query.count() == 1
-    assert ark.status == ArchiveStatus.WAITING
+    assert ark.status == ArchiveStatus.FAILED
     assert ark.accession_id == '1991'
+    assert ark.sip.archived is False
 
 
 def test_oais_process_transfer(db):
@@ -100,6 +103,7 @@ def test_oais_finish_transfer(db):
     ark = Archive.get_from_sip(sip.id)
     assert ark.status == ArchiveStatus.REGISTERED
     assert ark.archivematica_id == aipid
+    assert ark.sip.archived is True
 
 
 def test_oais_fail_transfer(db):
@@ -115,7 +119,7 @@ def test_oais_fail_transfer(db):
     assert ark.status == ArchiveStatus.FAILED
 
 
-def test_archive_new_sips(db):
+def test_archive_new_sips(db, location):
     """Test the archive_new_sips function."""
     # we create 2 SIP
     sip1 = SIP.create()

@@ -111,7 +111,7 @@ def transfer_rsync(uuid, config):
     # then we rsync to the final dest
     src_path = archiver.get_fullpath('')
     dest_path = config['destination']
-    if 'server' in config and 'user' in config:
+    if config.get('server', None) and config.get('user', None):
         dest_path = '{user}@{server}:{dest}'.format(user=config['user'],
                                                     server=config['server'],
                                                     dest=dest_path)
