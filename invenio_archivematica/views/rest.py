@@ -172,38 +172,50 @@ class Archive(ContentNegotiatedMethodView):
         """
         if not real_status \
                 or archive.status == ArchiveStatus.FAILED \
+                or archive.status == ArchiveStatus.NEW \
                 or not archive.archivematica_id:
             return self._to_json(archive)
         # we ask Archivematica
         # first we look at the status of the transfer
-        url = '{base}/api/transfer/status/{uuid}/'.format(
-            base=current_app.config['ARCHIVEMATICA_DASHBOARD_URL'],
-            uuid=archive.archivematica_id)
-        params = {
-            'username': current_app.config['ARCHIVEMATICA_DASHBOARD_USER'],
-            'api_key': current_app.config['ARCHIVEMATICA_DASHBOARD_API_KEY']
-        }
-        response = requests.get(url, params=params)
-        if response.ok:
+        if archive.status in (ArchiveStatus.WAITING,
+                              ArchiveStatus.PROCESSING_TRANSFER):
+            url = '{base}/api/transfer/status/{uuid}/'.format(
+                base=current_app.config['ARCHIVEMATICA_DASHBOARD_URL'],
+                uuid=archive.archivematica_id)
+            params = {
+                'username': current_app.config['ARCHIVEMATICA_DASHBOARD_USER'],
+                'api_key':
+                    current_app.config['ARCHIVEMATICA_DASHBOARD_API_KEY']
+            }
+            response = requests.get(url, params=params)
+            if not response.ok:  # a problem occured
+                return jsonify({}), response.status_code
             status = status_converter(response.json()['status'])
-            if status != archive.status:
-                change_status_func[status](archive.sip, archive.accession_id,
-                                           archive.archivematica_id)
-            return self._to_json(archive)
+            # if status is not complete, we stop here
+            if status != ArchiveStatus.REGISTERED:
+                if status != archive.status:
+                    change_status_func[status](archive.sip,
+                                               archive.accession_id,
+                                               archive.archivematica_id)
+                return self._to_json(archive)
+            # transfer finished, we need to update the archive
+            status = ArchiveStatus.PROCESSING_AIP
+            archive.archivematica_id = response.json()['sip_uuid']
+            change_status_func[status](archive.sip, archive.accession_id,
+                                       archive.archivematica_id)
         # we try to get the status of the SIP
         url = '{base}/api/ingest/status/{uuid}/'.format(
             base=current_app.config['ARCHIVEMATICA_DASHBOARD_URL'],
             uuid=archive.archivematica_id)
         response = requests.get(url, params=params)
-        if response.ok:
-            status = status_converter(response.json()['status'],
-                                      aip_processing=True)
-            if status != archive.status:
-                change_status_func[status](archive.sip, archive.accession_id,
-                                           archive.archivematica_id)
-            return self._to_json(archive)
-        # problem
-        return jsonify({}), response.status_code
+        if not response.ok:  # a problem occured
+            return jsonify({}), response.status_code
+        status = status_converter(response.json()['status'],
+                                  aip_processing=True)
+        if status != archive.status:
+            change_status_func[status](archive.sip, archive.accession_id,
+                                       archive.archivematica_id)
+        return self._to_json(archive)
 
 
 class ArchiveDownload(ContentNegotiatedMethodView):

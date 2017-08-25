@@ -24,8 +24,6 @@
 
 """Invenio 3 module to connect Invenio to Archivematica."""
 
-from __future__ import absolute_import, print_function
-
 from invenio_sipstore.signals import sipstore_created
 
 from . import config

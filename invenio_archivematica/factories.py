@@ -24,17 +24,12 @@
 
 """Factories used to customize the behavior of the module."""
 
-from os.path import join
 from shutil import rmtree
 from subprocess import call
-from tempfile import mkdtemp
 
 from flask import current_app
-from fs.opener import opener
 from invenio_sipstore.api import SIP
 from invenio_sipstore.archivers import BaseArchiver
-
-from invenio_archivematica.models import Archive
 
 
 def create_accession_id(ark):
