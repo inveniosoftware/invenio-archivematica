@@ -121,6 +121,43 @@ def transfer_rsync(uuid, config):
     return ret
 
 
+def transfer_demo(uuid, config):
+    """Transfer the files contained in the sip to the destination.
+
+    Very similar to the rsync transfer. However, because of time, I use the
+    VERY UNSECURE sshpass package for rsync authentication.
+    DO NOT USE IN PROD!!!
+
+    :param str uuid: the id of the sip containing files to transfer
+    :param dict config: here config must be a dict with the following keys:
+        - user - the SSH user
+        - password_file - a path where the password is stored
+        - remote - the URL or IP of the remote
+        - remote_path - where to store files on the remote
+        - args - the args for rsync
+    """
+    # we retrieve the archive and the SIP associated
+    sip = SIP.get_sip(uuid)
+    ark = Archive.get_from_sip(uuid)
+
+    # we export it to the temp folder
+    archiver = BaseArchiver(sip)
+    archiver.write_all_files()
+
+    # we rsync it to the remote
+    src_path = archiver._get_fullpath('')
+    dest_path = join(config['remote_path'], ark.accession_id)
+    dest_path = '{}:{}'.format(config['remote'], dest_path)
+    ssh_command = 'sshpass -f {filename} ssh -l {user}'.format(
+        filename=config['password_file'],
+        user=config['user'])
+    return call(['rsync',
+                 config['args'],
+                 '--rsh={}'.format(ssh_command),
+                 src_path,
+                 dest_path])
+
+
 def is_archivable_default(sip):
     """Tell if the given sip should be archived or not.
 
