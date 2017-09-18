@@ -43,12 +43,12 @@ from invenio_archivematica.tasks import oais_start_transfer
 
 # init
 try:
-    makedirs('/modules/archive/')
+    makedirs('/archive/')
 except:
     pass
 loc = Location(
     name='archive',  # this should go in SIPSTORE_ARCHIVER_LOCATION_NAME
-    uri='/modules/archive/',
+    uri='/archive/',
     default=True
 )
 db.session.add(loc)
