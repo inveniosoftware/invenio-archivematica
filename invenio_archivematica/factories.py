@@ -148,7 +148,7 @@ def transfer_demo(uuid, config):
     archiver.write_all_files()
 
     # we rsync it to the remote
-    src_path = archiver._get_fullpath('')
+    src_path = archiver.get_fullpath('')
     dest_path = join(config['remote_path'], ark.accession_id)
     dest_path = '{}:{}'.format(config['remote'], dest_path)
     ssh_command = 'sshpass -f {filename} ssh -l {user}'.format(
