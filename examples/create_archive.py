@@ -46,12 +46,17 @@ try:
     makedirs('/archive/')
 except:
     pass
-loc = Location(
-    name='archive',  # this should go in SIPSTORE_ARCHIVER_LOCATION_NAME
-    uri='/archive/',
+locrecords = Location(
+    name='records',
+    uri='/eos/workspace/o/oais/archivematica-test/records/',
     default=True
 )
-db.session.add(loc)
+locarchive = Location(
+    name='archive',  # this should go in SIPSTORE_ARCHIVER_LOCATION_NAME
+    uri='/eos/workspace/o/oais/archivematica-test/transfer/'
+)
+db.session.add(locrecords)
+db.session.add(locarchive)
 db.session.commit()
 
 # first we create a metadata type with a schema used by the following record
