@@ -173,12 +173,20 @@ def archive_new_sips(accession_id_factory, days=30, hours=0, minutes=0,
     .. code-block:: python
 
         from celery.schedules import crontab
-        # archive all the new sip that haven't been modified since 15 days
+        # archive all the new sip that haven't been modified since 15 minutes
         CELERYBEAT_SCHEDULE = {
             'archive-sips': {
                 'task': 'invenio_archivematica.tasks.archive_new_sips',
                 'schedule': crontab(hour=1),
-                'args': [15, 0, 10] # older than 15 days and 10 minutes
+                'kwargs': {
+                    'accession_id_factory':
+                        'invenio_archivematica.factories.create_accession_id',
+                    'days': 0,
+                    'hours': 0,
+                    'minutes': 15, # sip older than 15 minutes
+                    'seconds': 0,
+                    'delay': True
+                }
             }
         }
 
@@ -200,7 +208,7 @@ def archive_new_sips(accession_id_factory, days=30, hours=0, minutes=0,
                                                seconds=seconds)
     arks = Archive.query.filter(
         Archive.status == ArchiveStatus.NEW,
-        Archive.created <= str(begin_date)).all()
+        Archive.updated <= str(begin_date)).all()
     facto = import_string(accession_id_factory)
     # we start the transfer for all the founded sip
     for ark in arks:
