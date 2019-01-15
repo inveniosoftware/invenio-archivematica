@@ -149,7 +149,7 @@ html_theme_options = {
     'github_banner': True,
     'show_powered_by': False,
     'extra_nav_links': {
-        'invenio-archivematica@GitHub': 'https://github.com/remileduc/invenio-archivematica',
+        'invenio-archivematica@GitHub': 'https://github.com/inveniosoftware/invenio-archivematica',
         'invenio-archivematica@PyPI': 'https://pypi.python.org/pypi/invenio-archivematica/',
     }
 }

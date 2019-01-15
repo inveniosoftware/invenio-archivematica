@@ -25,20 +25,20 @@
  Invenio-Archivematica
 =======================
 
-.. image:: https://img.shields.io/travis/remileduc/invenio-archivematica.svg
-        :target: https://travis-ci.org/remileduc/invenio-archivematica
+.. image:: https://img.shields.io/travis/inveniosoftware/invenio-archivematica.svg
+        :target: https://travis-ci.org/inveniosoftware/invenio-archivematica
 
-.. image:: https://img.shields.io/coveralls/remileduc/invenio-archivematica.svg
-        :target: https://coveralls.io/r/remileduc/invenio-archivematica
+.. image:: https://img.shields.io/coveralls/inveniosoftware/invenio-archivematica.svg
+        :target: https://coveralls.io/r/inveniosoftware/invenio-archivematica
 
-.. image:: https://img.shields.io/github/tag/remileduc/invenio-archivematica.svg
-        :target: https://github.com/remileduc/invenio-archivematica/releases
+.. image:: https://img.shields.io/github/tag/inveniosoftware/invenio-archivematica.svg
+        :target: https://github.com/inveniosoftware/invenio-archivematica/releases
 
 .. image:: https://img.shields.io/pypi/dm/invenio-archivematica.svg
         :target: https://pypi.python.org/pypi/invenio-archivematica
 
-.. image:: https://img.shields.io/github/license/remileduc/invenio-archivematica.svg
-        :target: https://github.com/remileduc/invenio-archivematica/blob/master/LICENSE
+.. image:: https://img.shields.io/github/license/inveniosoftware/invenio-archivematica.svg
+        :target: https://github.com/inveniosoftware/invenio-archivematica/blob/master/LICENSE
 
 Invenio 3 module to connect Invenio to Archivematica
 

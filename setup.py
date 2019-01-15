@@ -90,7 +90,7 @@ setup(
     license='GPLv2',
     author='CERN',
     author_email='info@inveniosoftware.org',
-    url='https://github.com/remileduc/invenio-archivematica',
+    url='https://github.com/inveniosoftware/invenio-archivematica',
     packages=packages,
     zip_safe=False,
     include_package_data=True,

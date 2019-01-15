@@ -71,5 +71,5 @@ deploy:
   on:
     tags: true
     python: "2.7"
-    repo: remileduc/invenio-archivematica
+    repo: inveniosoftware/invenio-archivematica
     condition: $DEPLOY = true

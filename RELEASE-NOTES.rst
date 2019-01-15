@@ -32,5 +32,5 @@ Happy hacking and thanks for flying Invenio-Archivematica.
 |   Email: info@inveniosoftware.org
 |   IRC: #invenio on irc.freenode.net
 |   Twitter: https://twitter.com/inveniosoftware
-|   GitHub: https://github.com/remileduc/invenio-archivematica
+|   GitHub: https://github.com/inveniosoftware/invenio-archivematica
 |   URL: http://inveniosoftware.org
