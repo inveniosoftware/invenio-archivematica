@@ -27,6 +27,7 @@
 import json
 from os import path
 
+from flask import current_app
 from invenio_files_rest.models import FileInstance
 from invenio_sipstore.models import SIP, SIPFile, SIPMetadata, SIPMetadataType
 from six import BytesIO
@@ -42,7 +43,9 @@ def test_create_accessioned_id(db):
     ark = Archive.create(sip)
     db.session.commit()
     accessioned_id = factories.create_accession_id(ark)
-    assert accessioned_id == 'CERN-' + str(sip.id)
+    assert accessioned_id \
+        == current_app.config['ARCHIVEMATICA_ORGANIZATION_NAME'] + '-' \
+        + str(sip.id)
 
 
 def test_is_archivable_default(db):
