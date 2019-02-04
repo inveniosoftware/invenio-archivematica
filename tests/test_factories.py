@@ -82,7 +82,7 @@ def test_transfer_cp(app, db, location):
     # SIPFile
     f = FileInstance.create()
     fcontent = b'weighted companion cube\n'
-    f.set_contents(BytesIO(fcontent), default_location=location.name)
+    f.set_contents(BytesIO(fcontent), default_location=location.uri)
     sfile = SIPFile(sip=sip, file=f, filepath='portal.txt')
     db.session.add(sfile)
     db.session.commit()
@@ -121,7 +121,7 @@ def test_transfer_rsync(app, db, location):
     # SIPFile
     f = FileInstance.create()
     fcontent = b'weighted companion cube\n'
-    f.set_contents(BytesIO(fcontent), default_location=location.name)
+    f.set_contents(BytesIO(fcontent), default_location=location.uri)
     sfile = SIPFile(sip=sip, file=f, filepath='portal.txt')
     db.session.add(sfile)
     db.session.commit()
