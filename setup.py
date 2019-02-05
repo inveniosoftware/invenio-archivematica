@@ -34,8 +34,8 @@ history = open('CHANGES.rst').read()
 tests_require = [
     'check-manifest>=0.25',
     'coverage>=4.0',
-    'invenio-accounts>=1.0.0b9',
-    'isort>=4.2.2',
+    'invenio-accounts>=1.0.0',
+    'isort>=4.3',
     'pydocstyle>=1.0.0',
     'pytest-cache>=1.0',
     'pytest-cov>=1.8.0',
@@ -63,13 +63,14 @@ install_requires = [
     'Flask-BabelEx>=0.9.3',
     'Flask-CeleryExt>=0.3.0',
     'alembic>=0.9.3',
-    'invenio-admin>=1.0.0b4',
-    'invenio-access>=1.0.0b1',
-    'invenio-db>=1.0.0b8',
-    'invenio-files-rest>=1.0.0a19',
-    'invenio-oauth2server>=1.0.0b1',
-    'invenio-rest[cors]>=1.0.0b1',
-    'invenio-sipstore>=1.0.0a7'
+    'invenio-admin>=1.0.0',
+    'invenio-access>=1.0.1',
+    'invenio-db>=1.0.0',
+    'invenio-files-rest>=1.0.0a23',
+    'invenio-oauth2server>=1.0.3',
+    'invenio-rest[cors]>=1.0.0',
+    'invenio-sipstore>=1.0.0a7',
+    'webargs==4.4.1',   # TODO to be removed, see https://github.com/inveniosoftware/invenio-files-rest/pull/185#issue-246063980
 ]
 
 packages = find_packages()

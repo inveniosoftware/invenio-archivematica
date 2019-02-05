@@ -36,8 +36,8 @@ from flask_babelex import Babel
 from flask_breadcrumbs import Breadcrumbs
 from invenio_access import InvenioAccess
 from invenio_accounts import InvenioAccounts
-from invenio_db import db as db_
 from invenio_db import InvenioDB
+from invenio_db import db as db_
 from invenio_files_rest import InvenioFilesREST
 from invenio_files_rest.models import Location
 from invenio_oauth2server import InvenioOAuth2Server, InvenioOAuth2ServerREST
