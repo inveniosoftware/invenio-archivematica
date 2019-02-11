@@ -1,26 +1,10 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2017 CERN.
+# Copyright (C) 2017-2019 CERN.
 #
-# Invenio is free software; you can redistribute it
-# and/or modify it under the terms of the GNU General Public License as
-# published by the Free Software Foundation; either version 2 of the
-# License, or (at your option) any later version.
-#
-# Invenio is distributed in the hope that it will be
-# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Invenio; if not, write to the
-# Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-# MA 02111-1307, USA.
-#
-# In applying this license, CERN does not
-# waive the privileges and immunities granted to it by virtue of its status
-# as an Intergovernmental Organization or submit itself to any jurisdiction.
+# Invenio is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
 
 notifications:
   email: false
@@ -31,6 +15,8 @@ language: python
 
 matrix:
   fast_finish: true
+  allow_failures:
+    - env: REQUIREMENTS=devel
 
 cache:
   - pip
@@ -66,7 +52,7 @@ deploy:
   provider: pypi
   user: inveniosoftware
   password:
-    secure: TODO:PYPISECUREHASH
+    secure: "MaRzYQuieU1Q0FxkTyFe547wlJE3GDREykiJDAQLR+SCuMwUBDykGPNUtKP6MrFpWm2xwzKFGZyFdUw71G9Ehj6Sn/4SFQ+VHiD2+igP6AVaAdnNGKnSrPr8I2WGbOU8Xmuz7hJevzkTnpMI7wmWUs5rs+k+HciagJvx2ewpCltDp+IQsQcUKTh9RFCCN6IHUZj2D9uVceZm2iwupj5JH/NDhbzL61FxIxMAtX0X5y2Zlx44aQixxaoVwdVavQPf9Q5ImKBT/pZWjkTpwHkOGE5kt3UNtH/DwI4iVrNDwrLdtc+9W8SOy5LRrz/Ob3OmvnVHzqU2djjvGbNLObQhAeFjibdTwSywf6MR5BSmyjmqQ0AFWgNXR95ycxexoJIar1WFA+VUBJ35xIfol1ICFBNyvLUuZeeWoLBM6TSprB80cP7mcHeN6DypyaEKWXeA/0/0e3lMDcWUgooV/RxwfykYiHnjtxaRtT+3swLqP0CZrzuzYsoxoDjX+mOV5EL2NEGF5pl9Uj0ikrHi3vSkUTurO0gOJL/J/YNK2iCAs4woRNhfR/6J+zPwn2z/NKJThNledlMLisExBqyHDwHl5N42CjoRBRW+OD0Zqleu7Q9cCDNov2wyvtMWVYMcTsTGGoOLH8bPTyimAma78o/JOHr7S1gwLS3Vu/M/KnFDdU4="
   distributions: "compile_catalog sdist bdist_wheel"
   on:
     tags: true
