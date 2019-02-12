@@ -56,6 +56,8 @@ Archivematica
 For development there is the possibility to `install Archivematica locally using Docker Compose on Linux <https://github.com/artefactual-labs/am/tree/master/compose#docker-and-linux>`_.
 When you are running Invenio locally as well and have used the standard configuration there should be no conflict between the Docker containers' ports.
 
+The default username and password for Archivematica are ``test`` and ``test``.
+
 Invenio-Archivematica
 =====================
 Follow the steps described above. For development the ``--editable`` option can be used for pip install. 
