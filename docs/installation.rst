@@ -11,8 +11,10 @@ Installation
 ************
 
 Invenio-Archivematica requires you to have Invenio and Archivematica installed.
+
 Head over to `invenio’s docs <https://invenio.readthedocs.io/en/latest/>`_
 if you have not installed it yet and follow the guide.
+
 If you have not yet installed Archivematica head over to `Archivematica <https://www.archivematica.org/en/docs/archivematica-1.8/admin-manual/installation-setup/installation/installation/#installation>`_ to install it.
 
 Install Invenio-Archivematica
@@ -22,6 +24,7 @@ Before installing the Invenio-Archivematica module stop any running Invenio inst
 Download or clone the github repository `inveniosoftware/invenio-archivematica <https://github.com/inveniosoftware/invenio-archivematica>`_ and then go to its root directory and *pip install*:
 
 ::
+
    $ cd invenio-archivematica/
    $ pip install .[all]
 
@@ -32,7 +35,9 @@ shouldn’t be used.)
 
 Set up a transfer folder
 ========================
-To link Invenio and Archivematica a transfer folder needs to be set up. This is the folder to which the SIPs of Invenio will be copied and from which transfers into Archivematica can be started.
+To link Invenio and Archivematica a transfer folder needs to be set up. 
+
+This is the folder to which the SIPs of Invenio will be copied and from which transfers into Archivematica can be started.
 The Invenio user needs read and write access and archivematica needs read access as well.
 
 Install automation-tools
@@ -53,17 +58,21 @@ When you are running Invenio locally as well and have used the standard configur
 
 Invenio-Archivematica
 =====================
-Follow the steps described above. For development the ``--editable`` option can be used for pip install. This means that if you change the files
+Follow the steps described above. For development the ``--editable`` option can be used for pip install. 
+
+This means that if you change the files
 in the module, you won’t have to reinstall the module before seeing changes. This should not be used in a production environment.
 
 ::
+
    $ cd invenio-archivematica/
    $ pip install .[all]
 
 Transfer-folder
 ===============
 When installing Archivematica via Docker the folder needs to be mounted so that the Dashboard can access it.
-for testing purposes it is also possible to use the ``.am`` directory in the ``Home`` directory, which is already used by the Docker containers.
+
+For testing purposes it is also possible to use the ``.am`` directory in the ``Home`` directory, which is already used by the Docker containers.
 By creating a transfer folder in it and changing the rights so that the Invenio user can read and write,
 the transfer folder will be usable for development.
 
@@ -80,8 +89,9 @@ For it to be used you need to use the ``-c`` option:
 
 Further automation
 ==================
-In the standard configuration of Archivematica the transfer and ingest process require user interaction. For automation of this, you can change 
-the processing configuration in the Archivematica dashboard to suit your needs.
+In the standard configuration of Archivematica the transfer and ingest process require user interaction. 
+For automation of this, you can change the processing configuration in the Archivematica dashboard to suit your needs.
+
 The following configuration automates every step possible. Please note that this will automatically approve every transfer and ingest without giving you the possibility to check before storing the AIP.
 
     **Send transfer to quarantine:** No
