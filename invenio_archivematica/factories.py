@@ -14,9 +14,12 @@ from subprocess import call
 
 from flask import current_app
 from invenio_sipstore.api import SIP
-from invenio_sipstore.archivers import BaseArchiver
+# from invenio_sipstore.archivers import BaseArchiver
+from invenio_sipstore.models import RecordSIP
 
 from invenio_archivematica.models import Archive
+
+from .archivers import ArchivematicaArchiver
 
 
 def create_accession_id(ark):
@@ -50,7 +53,7 @@ def transfer_cp(uuid, config):
         :py:data:`invenio_sipstore.config.SIPSTORE_ARCHIVER_LOCATION_NAME`
     """
     sip = SIP.get_sip(uuid)
-    archiver = BaseArchiver(sip)
+    archiver = ArchivematicaArchiver(sip)
     archiver.write_all_files()
     return 0
 
@@ -87,7 +90,7 @@ def transfer_rsync(uuid, config):
     sip = SIP.get_sip(uuid)
 
     # first we copy everything in a temp folder
-    archiver = BaseArchiver(sip)
+    archiver = ArchivematicaArchiver(sip)
     archiver.write_all_files()
 
     # then we rsync to the final dest
@@ -128,7 +131,7 @@ def transfer_demo(uuid, config):
     ark = Archive.get_from_sip(uuid)
 
     # we export it to the temp folder
-    archiver = BaseArchiver(sip)
+    archiver = ArchivematicaArchiver(sip)
     archiver.write_all_files()
 
     # we rsync it to the remote

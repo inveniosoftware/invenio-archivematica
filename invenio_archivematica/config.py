@@ -12,12 +12,18 @@ ARCHIVEMATICA_BASE_TEMPLATE = 'invenio_archivematica/base.html'
 """Default base template for the demo page."""
 
 ARCHIVEMATICA_TRANSFER_FACTORY = 'invenio_archivematica.factories.transfer_cp'
+
+
 """The factory to do the transfers of files to the dashboard.
 
 See :py:func:`invenio_archivematica.factories.transfer_cp`
 and :py:data:`invenio_archivematica.config.ARCHIVEMATICA_TRANSFER_FOLDER`
 for more information.
 """
+
+ARCHIVEMATICA_ACCESSION_ID_FACTORY = 'invenio_archivematica.factories.create_accession_id'
+
+ARCHIVEMATICA_METADATA_FACTORY = 'invenio_archivematica.archivers.ArchivematicaArchiver._generate_metadata'
 
 ARCHIVEMATICA_ISARCHIVABLE_FACTORY = 'invenio_archivematica.' \
                                      'factories.is_archivable_default'
@@ -29,7 +35,7 @@ See :py:func:`invenio_archivematica.factories.is_archivable_default`.
 ARCHIVEMATICA_ORGANIZATION_NAME = 'CERN'
 """Organization name setup in Archivematica's dashboard."""
 
-ARCHIVEMATICA_TRANSFER_FOLDER = '.'
+ARCHIVEMATICA_TRANSFER_FOLDER = '~/.am/ss-location-data'
 """The transfer folder setup in the dashboard.
 
 If you use a custom factory to do the transfer, you can put whatever you want
@@ -52,6 +58,7 @@ ARCHIVEMATICA_STORAGE_URL = 'http://localhost:8001'
 
 ARCHIVEMATICA_STORAGE_USER = 'invenio'
 """The user to connect to Archivematica Storage."""
+
 
 ARCHIVEMATICA_STORAGE_API_KEY = 'change me'
 """The API key to use with the user above."""

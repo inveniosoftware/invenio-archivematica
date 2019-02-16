@@ -24,6 +24,7 @@ ARCHIVE_STATUS_TITLES = {
     'NEW': _('New'),
     'WAITING': _('Waiting'),
     'PROCESSING_TRANSFER': _('Processing Transfer'),
+    'FAILED_TRANSFER': _('Failed Transfer'),
     'PROCESSING_AIP': _('Processing AIP'),
     'REGISTERED': _('Registered'),
     'FAILED': _('Failed'),
@@ -49,6 +50,9 @@ class ArchiveStatus(Enum):
 
     REGISTERED = 'REGISTERED'
     """The sip has been archived."""
+
+    FAILED_TRANSFER = 'FAILED_TRANSFER'
+    """The transfer of sip failed."""
 
     FAILED = 'FAILED'
     """The sip has not been archived because of an error."""

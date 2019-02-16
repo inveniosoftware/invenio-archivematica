@@ -134,7 +134,7 @@ def oais_fail_transfer(uuid, accession_id='', archivematica_id=None):
     :param str uuid: the UUID of the sip
     """
     ark = Archive.get_from_sip(uuid)
-    ark.status = ArchiveStatus.FAILED
+    ark.status = ArchiveStatus.FAILED_TRANSFER
     ark.sip.archived = False
 
     db.session.commit()
@@ -191,7 +191,9 @@ def archive_new_sips(accession_id_factory, days=30, hours=0, minutes=0,
     arks = Archive.query.filter(
         Archive.status == ArchiveStatus.NEW,
         Archive.updated <= str(begin_date)).all()
+
     facto = import_string(accession_id_factory)
+
     # we start the transfer for all the founded sip
     for ark in arks:
         accession_id = facto(ark)

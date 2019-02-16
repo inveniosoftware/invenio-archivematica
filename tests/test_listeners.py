@@ -38,3 +38,17 @@ def test_listeners(conf, expected_status, app, db):
     ark = Archive.get_from_sip(sip.id)
     assert ark.sip.user.id == sip.user.id
     assert ark.status == expected_status
+
+
+def test_listeners_when_no_archivable_sip(app, db):
+    """Test listener_sip_created and listener_record_updated functions."""
+    # first we change the is_archivable function to return False
+    app.config['ARCHIVEMATICA_ISARCHIVABLE_FACTORY'] = 'invenio_archivematica.factories.is_archivable_none'
+
+    assert Archive.query.count() == 0
+    # let's create an SIP
+    user = create_test_user('test@example.org')
+    sip = SIP.create(True, user_id=user.id, agent={'test': 'test'})
+    db.session.commit()
+
+    assert Archive.query.count() == 1

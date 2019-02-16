@@ -10,11 +10,15 @@
 
 import json
 from os import path
+from uuid import uuid4
 
 from flask import current_app
 from invenio_files_rest.models import FileInstance
-from invenio_sipstore.models import SIP, SIPFile, SIPMetadata, SIPMetadataType
+from invenio_pidstore.models import PersistentIdentifier, PIDStatus
+from invenio_sipstore.models import SIP, RecordSIP, SIPFile, SIPMetadata, \
+    SIPMetadataType
 from six import BytesIO
+from werkzeug.utils import import_string
 
 from invenio_archivematica import factories
 from invenio_archivematica.models import Archive
@@ -48,70 +52,83 @@ def test_is_archivable_none(db):
     assert not factories.is_archivable_none(sip2)
 
 
-def test_transfer_cp(app, db, location):
+def test_transfer_cp(app, db, locations):
     """Test factories.transfer_cp function."""
     # config
     app.config['SIPSTORE_ARCHIVER_DIRECTORY_BUILDER'] = \
         'helpers:archive_directory_builder'
     app.config['SIPSTORE_ARCHIVER_METADATA_TYPES'] = ['test']
+
     # SIP
     sip = SIP.create()
-    # SIPMetadataType
-    mtype = SIPMetadataType(title='Test', name='test', format='json')
-    db.session.add(mtype)
-    # SIPMetadata
-    mcontent = {'title': 'title', 'author': 'me'}
-    meth = SIPMetadata(sip=sip, type=mtype, content=json.dumps(mcontent))
-    db.session.add(meth)
+
     # SIPFile
     f = FileInstance.create()
     fcontent = b'weighted companion cube\n'
-    f.set_contents(BytesIO(fcontent), default_location=location.uri)
+    f.set_contents(BytesIO(fcontent), default_location=locations['archive'].uri)
     sfile = SIPFile(sip=sip, file=f, filepath='portal.txt')
     db.session.add(sfile)
     db.session.commit()
+
+    #RecordSIP
+    rec_uuid = uuid4()
+    pid = PersistentIdentifier.create(
+        'rec', '1', status=PIDStatus.REGISTERED, object_type='rec',
+        object_uuid=rec_uuid)
+    r_sip = RecordSIP(sip=sip, pid=pid) 
 
     # EXPORT
     factories.transfer_cp(sip.id, None)
 
     # TEST
-    folder = path.join(location.uri, 'test')
+    folder = path.join(locations['archive'].uri, 'test')
     assert path.isdir(folder)
-    assert path.isdir(path.join(folder, 'files'))
-    assert path.isfile(path.join(folder, 'files', 'portal.txt'))
+    assert path.isfile(path.join(folder, 'data/portal.txt'))
     assert path.isdir(path.join(folder, 'metadata'))
-    assert path.isfile(path.join(folder, 'metadata', 'test.json'))
-    with open(path.join(folder, 'files', 'portal.txt'), 'rb') as fp:
+    assert path.isfile(path.join(folder, 'metadata', 'metadata.csv'))
+    with open(path.join(folder, 'data/portal.txt'), 'rb') as fp:
         assert fp.read() == fcontent
-    with open(path.join(folder, 'metadata', 'test.json'), 'r') as fp:
-        assert json.loads(fp.read()) == mcontent
+    with open(path.join(folder, 'metadata', 'metadata.csv'), 'r') as fp:
+        assert fp.readline() == 'filename,dc.identifier\n'
+        assert fp.readline() == 'objects/data,1\n'
 
 
-def test_transfer_rsync(app, db, location):
+def test_transfer_rsync(app, db, locations):
     """Test factories.transfer_rsync function."""
     # config
     app.config['SIPSTORE_ARCHIVER_DIRECTORY_BUILDER'] = \
         'helpers:archive_directory_builder'
     app.config['SIPSTORE_ARCHIVER_METADATA_TYPES'] = ['test']
+
     # SIP
     sip = SIP.create()
+
     # SIPMetadataType
     mtype = SIPMetadataType(title='Test', name='test', format='json')
     db.session.add(mtype)
+
     # SIPMetadata
     mcontent = {'title': 'title', 'author': 'me'}
     meth = SIPMetadata(sip=sip, type=mtype, content=json.dumps(mcontent))
     db.session.add(meth)
+
     # SIPFile
     f = FileInstance.create()
     fcontent = b'weighted companion cube\n'
-    f.set_contents(BytesIO(fcontent), default_location=location.uri)
+    f.set_contents(BytesIO(fcontent), default_location=locations['archive'].uri)
     sfile = SIPFile(sip=sip, file=f, filepath='portal.txt')
     db.session.add(sfile)
     db.session.commit()
 
+    #RecordSIP
+    rec_uuid = uuid4()
+    pid = PersistentIdentifier.create(
+        'rec', '1', status=PIDStatus.REGISTERED, object_type='rec',
+        object_uuid=rec_uuid)
+    r_sip = RecordSIP(sip=sip, pid=pid) 
+
     # EXPORT
-    folder = path.join(location.uri, 'lulz')
+    folder = path.join(locations['archive'].uri, 'lulz')
     params = {
         'server': '',
         'user': '',
@@ -121,13 +138,13 @@ def test_transfer_rsync(app, db, location):
     factories.transfer_rsync(sip.id, params)
 
     # TEST
-    assert not path.exists(path.join(location.uri, 'test'))
+    assert not path.exists(path.join(locations['archive'].uri, 'test'))
     assert path.isdir(folder)
-    assert path.isdir(path.join(folder, 'files'))
-    assert path.isfile(path.join(folder, 'files', 'portal.txt'))
+    assert path.isfile(path.join(folder, 'data/portal.txt'))
     assert path.isdir(path.join(folder, 'metadata'))
-    assert path.isfile(path.join(folder, 'metadata', 'test.json'))
-    with open(path.join(folder, 'files', 'portal.txt'), 'rb') as fp:
+    assert path.isfile(path.join(folder, 'metadata', 'metadata.csv'))
+    with open(path.join(folder, 'data/portal.txt'), 'rb') as fp:
         assert fp.read() == fcontent
-    with open(path.join(folder, 'metadata', 'test.json'), 'r') as fp:
-        assert json.loads(fp.read()) == mcontent
+    with open(path.join(folder, 'metadata', 'metadata.csv'), 'r') as fp:
+        assert fp.readline() == 'filename,dc.identifier\n'
+        assert fp.readline() == 'objects/data,1\n'

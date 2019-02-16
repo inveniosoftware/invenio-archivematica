@@ -13,21 +13,26 @@ from __future__ import absolute_import, print_function
 import os
 import shutil
 import tempfile
+from uuid import uuid4
 
 import pytest
 from flask import Flask
 from flask_babelex import Babel
 from flask_breadcrumbs import Breadcrumbs
+from fs.opener import opener
 from invenio_access import InvenioAccess
 from invenio_accounts import InvenioAccounts
 from invenio_db import InvenioDB
 from invenio_db import db as db_
 from invenio_files_rest import InvenioFilesREST
-from invenio_files_rest.models import Location
+from invenio_files_rest.models import FileInstance, Location
 from invenio_oauth2server import InvenioOAuth2Server, InvenioOAuth2ServerREST
 from invenio_oauth2server.views import server_blueprint
+from invenio_pidstore.models import PersistentIdentifier, PIDStatus
 from invenio_rest import InvenioREST
 from invenio_sipstore import InvenioSIPStore
+from invenio_sipstore.models import SIP, RecordSIP, SIPFile
+from six import BytesIO, b
 from sqlalchemy_utils.functions import create_database, database_exists, \
     drop_database
 
@@ -92,20 +97,54 @@ def db(app):
     drop_database(str(db_.engine.url))
 
 
-@pytest.yield_fixture()
-def location(app, db):
-    """Define a location to write SIPs with factories."""
-    path = os.path.abspath('./tmp/')
-    try:
-        os.mkdir(path)
-    except:
-        pass
-    loc = Location(name='archive', uri=path, default=True)
-    db.session.add(loc)
+@pytest.fixture()
+def locations(db, instance_path):
+    """File system location."""
+    default = Location(
+        name='default',
+        uri=instance_path,
+        default=True
+    )
+    archive = Location(
+        name='archive',
+        uri=os.path.join(instance_path, 'archive'),
+        default=False
+    )
+    db.session.add(default)
+    db.session.add(archive)
     db.session.commit()
-    app.config['SIPSTORE_ARCHIVER_LOCATION_NAME'] = 'archive'
-    yield loc
-    shutil.rmtree(path)
+    return dict((loc.name, loc) for loc in [default, archive])
+
+@pytest.yield_fixture()
+def archive_fs(db, locations):
+    """Fixture to check files generation."""
+    archive_path = locations['archive'].uri
+    fs = opener.opendir(archive_path, writeable=False, create_dir=True)
+    yield fs
+    for d in fs.listdir():
+        fs.removedir(d, force=True)
+
+
+@pytest.yield_fixture()
+def sip(db, locations):
+    """Example SIP with files and records associated."""
+    sip = SIP.create()
+
+    file = FileInstance.create()
+    file.set_contents(BytesIO(b('test')),
+                       default_location=locations['default'].uri)
+    f_sip = SIPFile(sip=sip, filepath='foobar.txt',
+                        file=file)
+
+    for x in range(2):
+        rec_uuid = uuid4()
+        pid = PersistentIdentifier.create(
+            'rec', str(x), status=PIDStatus.REGISTERED, object_type='rec',
+            object_uuid=rec_uuid)
+        r_sip = RecordSIP(sip=sip, pid=pid) 
+
+    yield sip
+
 
 
 @pytest.yield_fixture()
