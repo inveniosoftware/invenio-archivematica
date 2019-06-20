@@ -23,7 +23,7 @@ tests_require = [
     'pydocstyle>=1.0.0',
     'pytest-cov>=1.8.0',
     'pytest-pep8>=1.0.6',
-    'pytest>=2.8.3',
+    'pytest>=3.8.1,<4',
     'mock>=1.3.0',
 ]
 
@@ -54,7 +54,7 @@ install_requires = [
     'invenio-oauth2server>=1.0.3',
     'invenio-rest[cors]>=1.0.0',
     'invenio-sipstore>=1.0.0a7',
-    'invenio-records-files>=1.0.0a11'
+    'invenio-records-files>=1.0.0a11',
 ]
 
 packages = find_packages()

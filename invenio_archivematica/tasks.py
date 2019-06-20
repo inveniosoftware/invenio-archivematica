@@ -29,12 +29,12 @@ def oais_start_transfer(uuid, accession_id='', archivematica_id=None):
     Once the transfer is finished, you should call
     :py:func:`invenio_archivematica.tasks.oais_finish_transfer`.
 
-    The signal :py:data:`invenio_archivematica.signals.oais_transfer_started`
+    The signal ``invenio_archivematica.signals.oais_transfer_started``
     is called with the sip as function parameter.
 
     :param str uuid: the UUID of the sip to archive
     :param str accession_id: the AIP accession ID. You can generate one from
-    :py:func:`invenio_archivematica.factories.create_accession_id`
+        :py:func:`invenio_archivematica.factories.create_accession_id`
     """
     # we get the sip
     sip = SIP.get_sip(uuid)
@@ -62,8 +62,7 @@ def oais_process_transfer(uuid, accession_id='', archivematica_id=None):
     This function should be called if the transfer is processing. See
     :py:func:`invenio_archivematica.tasks.oais_start_transfer`.
 
-    The signal
-    :py:data:`invenio_archivematica.signals.oais_transfer_processing`
+    The signal ``invenio_archivematica.signals.oais_transfer_processing``
     is called with the sip as function parameter.
 
     :param str uuid: the UUID of the sip
@@ -84,8 +83,7 @@ def oais_process_aip(uuid, accession_id='', archivematica_id=None):
     This function should be called if the aip is processing. See
     :py:func:`invenio_archivematica.tasks.oais_start_transfer`.
 
-    The signal
-    :py:data:`invenio_archivematica.signals.oais_transfer_processing`
+    The signal ``invenio_archivematica.signals.oais_transfer_processing``
     is called with the sip as function parameter.
 
     :param str uuid: the UUID of the sip
@@ -107,7 +105,7 @@ def oais_finish_transfer(uuid, accession_id='', archivematica_id=None):
     mark the sip as correctly archived. See
     :py:func:`invenio_archivematica.tasks.oais_start_transfer`.
 
-    The signal :py:data:`invenio_archivematica.signals.oais_transfer_finished`
+    The signal ``invenio_archivematica.signals.oais_transfer_finished``
     is called with the sip as function parameter.
 
     :param str uuid: the UUID of the sip
@@ -130,7 +128,7 @@ def oais_fail_transfer(uuid, accession_id='', archivematica_id=None):
     This function should be called if the transfer failed. See
     :py:func:`invenio_archivematica.tasks.oais_start_transfer`.
 
-    The signal :py:data:`invenio_archivematica.signals.oais_transfer_failed`
+    The signal ``invenio_archivematica.signals.oais_transfer_failed``
     is called with the sip as function parameter.
 
     :param str uuid: the UUID of the sip

@@ -10,8 +10,8 @@
 
 from invenio_sipstore.signals import sipstore_created
 
-from . import config
-from .listeners import listener_sip_created
+from invenio_archivematica import config
+from invenio_archivematica.listeners import listener_sip_created
 
 
 class InvenioArchivematica(object):

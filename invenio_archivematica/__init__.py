@@ -10,7 +10,7 @@
 
 from __future__ import absolute_import, print_function
 
-from .ext import InvenioArchivematica
-from .version import __version__
+from invenio_archivematica.ext import InvenioArchivematica
+from invenio_archivematica.version import __version__
 
 __all__ = ('__version__', 'InvenioArchivematica')
