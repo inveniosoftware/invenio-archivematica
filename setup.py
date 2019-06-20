@@ -24,13 +24,12 @@ tests_require = [
     'pytest-cov>=1.8.0',
     'pytest-pep8>=1.0.6',
     'pytest>=2.8.3',
+    'mock>=1.3.0',
 ]
 
 extras_require = {
     'docs': [
-        # TODO unpin see
-        # https://github.com/inveniosoftware/troubleshooting/issues/11
-        'Sphinx>=1.5.1,<1.6',
+        'Sphinx>=1.5.1',
     ],
     'tests': tests_require,
 }
@@ -55,7 +54,7 @@ install_requires = [
     'invenio-oauth2server>=1.0.3',
     'invenio-rest[cors]>=1.0.0',
     'invenio-sipstore>=1.0.0a7',
-    'webargs==4.4.1',   # TODO to be removed, see https://github.com/inveniosoftware/invenio-files-rest/pull/185#issue-246063980
+    'invenio-records-files>=1.0.0a11'
 ]
 
 packages = find_packages()
