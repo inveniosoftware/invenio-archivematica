@@ -5,73 +5,50 @@
     Invenio is free software; you can redistribute it and/or modify it
     under the terms of the MIT License; see LICENSE file for more details.
 
+Usage
+=====
 
-Prerequisites
--------------
-The following will assume that you have Invenio, Invenio-Archivematica, Archivematica 
-and the automation-tools installed.
+Instructions for using Invenio-Archivematica to archive a file. This documents
+assumes that you have Invenio, Invenio-Archivematica, Archivematica and the
+automation-tools installed. For more info please checkout the
+`installation instructions <installation.rst>`_.
 
+.. contents::
 
 Concepts
---------
-
+========
 This is how the Invenio to Archivematica workflow works:
 
-1. on Invenio, you create a SIP representing what you want to archive
+1. On Invenio, you create a Submission Information Package (SIP) that contains
+   everything you want to archive. Typically a SIP is a collection of files and
+   metadata. You can see your SIPs in the Invenio admin menu: ``/admin/sip/``.
 
-   -  it contains files
-   -  it contains metadata
+2. Invenio will automatically create an archive object with the status ``NEW``
+   You can see the Archive object in the Invenio admin menu:``/admin/archive/``.
 
-      -  only the metadata with the type listed in
-         ``SIPSTORE_ARCHIVER_METADATA_TYPES`` will be archived
+3. The next step is to let Invenio start the transfer to Archivematica. The
+   Archive is updated with the status ``WAITING`` and the files and metadata are
+   copied to the transfer folder of Archivematica waiting for processing.
 
-   -  you can see your SIP in the Invenio admin menu: ``/admin/sip/``
+4. Each time the automation-tool run Archivematica checks the status of the
+   active transfer and notifies Invenio about the process. If there are no
+   active transfers Archivematica checks the transfer folder for new files and
+   starts processing.
 
-2. an Archive object is automatically created, with the status ``NEW``
-   so it hasn’t been sent to Archivematica yet
+5. When the transfer is succesfull the files are stored in the storage inside
+   an AIP.
 
-   -  you can see the Archive object in the Invenio admin menu:
-      ``/admin/archive/``
-
-3. you start the transfer to Archivematica
-
-   -  the Archive is updated with the status ``WAITING``
-   -  the files and metadata are sent to the transfer folder of
-      Archivematica waiting for processing
-
-4. Archivematica starts processing the files and notifies Invenio about the
-   process
-5. the files are stored in the storage inside an AIP
-
-You understand that the SIP at the origin of the process needs to be
-created. For the moment, this is not automatically generated, but you
-can generate one thanks to the ``create_archive.py`` script, see below.
-
-On the dashboard, the Automation-Tools should be run every X minutes
-thanks to a cron script. You can eventually trigger it manually.
-
-If the Automation-Tools is not able to notify Invenio about the process
-for some reasons, you will have to call the Invenio-Archivematica API
-yourself.
-
-Let’s archive a record
-----------------------
-
-Here, we will follow the code described in
-https://github.com/inveniosoftware/invenio-archivematica/blob/master/examples/create_archive.py
+Archiving a record
+==================
+In this section we will describe in detail how a record is archived. For this,
+we will follow `create_archive.py
+<https://github.com/inveniosoftware/invenio-archivematica/blob/master/examples/create_archive.py>`_
 step by step.
 
 Initialization
-^^^^^^^^^^^^^^
-
-On the web container, run the Invenio shell. Note that you need to
-import all the stuff at the beginning of the script:
-
--  ``docker exec -it invenio_web_1 bash``, or for OpenShift,
-   ``oc rsh dc/web``
--  ``invenio shell``
-
-Copy / paste the imports:
+--------------
+On the web container, run the Invenio shell. Note that you need to able to
+import all requirements for the script to function properly.
 
 .. code:: python
 
@@ -88,8 +65,8 @@ Copy / paste the imports:
    from invenio_sipstore.api import RecordSIP
    from invenio_sipstore.models import SIPMetadataType
 
-If you didn’t setup manually the locations, then the first time you need
-to run this:
+First we need to set the locations for the SIP records and the Archive objects.
+For the development setup this would default to:
 
 .. code:: python
 
@@ -99,28 +76,29 @@ to run this:
         pass
     locrecords = Location(
         name='records',
-        uri='',     # insert here the directory where you wanr your records to go
+        # Insert here the directory where you want your records to go
+        uri='/home/{username}/invenio-records',
         default=True
     )
     locarchive = Location(
-        name='archive',  # this should go in SIPSTORE_ARCHIVER_LOCATION_NAME
-        uri='' # insert here the directory shared with archivematica
+        # This should go in SIPSTORE_ARCHIVER_LOCATION_NAME
+        name='archive',
+        # Insert here the directory shared with archivematica
+        uri='/home/jorik/.am/ss-location-data'
     )
     db.session.add(locrecords)
     db.session.add(locarchive)
     db.session.commit()
 
-The first location is the one where the records are saved. These are not yet shipped
-to Archivematica. Once they appear in the second location (loarchive) they are 
-in Archivematica's location.
+The first location, ``locrecords``, is the one where the records are saved.
+Records in this folder are not yet shipped to Archivematica. Once they appear in
+the second location, ``locarchive``, they are in the transfer folder and can be
+ingested by Archivematica. *Note*: the name of the archive location *needs* to
+be the same as the name put in the variable ``SIPSTORE_ARCHIVER_LOCATION_NAME``.
 
-Note that the name of the archive location **needs** to be the same as the name
-put in the variable ``SIPSTORE_ARCHIVER_LOCATION_NAME``.
-
-Now we create a metadata type. Here, the name of the metadata type
-**must** appear in the config variable
-``SIPSTORE_ARCHIVER_METADATA_TYPES``. The schema used **must** be the
-same as the one used when we will create the record.
+Next we create a metadata type. Here, the name of the metadata type *must*
+appear in the config variable ``SIPSTORE_ARCHIVER_METADATA_TYPES``. This schema
+will be used when creating SIP records:
 
 .. code:: python
 
@@ -131,8 +109,11 @@ same as the one used when we will create the record.
    db.session.add(mtype)
    db.session.commit()
 
-Create a record with files
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Create a SIP
+------------
+The basis for al archival operations is the SIP. The SIP contains all the files
+that need to be archived, plus the metadata for these files. But before we can
+create a SIP we need to create a dummy record in Invenio containing a file:
 
 .. code:: python
 
@@ -157,10 +138,10 @@ Create a record with files
    record.commit()
    db.session.commit()
 
-The created record must have the key ``$schema`` with the same value as
-the metadata type’s schema.
-
-Here, we have created a simple record with the following metadata:
+The schema of the new record must be the same as the schema that is used for
+the ``SipMetadataType`` that is defined during the `initialization`_. The new
+record contains one file, ``crab.txt``, that contains the words
+"head crab" and is created with the this metadata:
 
 .. code:: json
 
@@ -172,91 +153,81 @@ Here, we have created a simple record with the following metadata:
        "title": "demo"
    }
 
-It also contains one file ``crab.txt`` that contains the words
-``head crab``.
-
-Create the SIP
-^^^^^^^^^^^^^^
-
-Here we start the Invenio to Archivematica workflow:
+The final step is to create a SIP that containing the new record.
 
 .. code:: python
 
-   sip = RecordSIP.create(pid, record, True, user_id=1, agent={'demo': 'archivematica'})
+   sip = RecordSIP.create(pid, record, True, user_id=1,
+                          agent={'demo': 'archivematica'})
    db.session.commit()
 
-You can now check the admin menu of Invenio to see the SIP object and the Archive
-object.
+You can now check the admin menu of Invenio to see the SIP object and the
+Archive object.
 
-Start the transfer on Archivematica
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Here, we send the files to the Archivematica transfer folder:
+Transfer to Archivematica
+-----------------------------------
+After we created the SIP we can copy the files to the Archivematica transfer
+folder:
 
 .. code:: python
 
    oais_start_transfer(sip.sip.id, 'test-demo-archivematica')
 
-**IMPORTANT**: note that the string you give as a second parameter to
-the function, here ``test-demo-archivematica``, will be the accession
-ID, used to retrieve your Archive in the API.
+*Note*: the string you give as a second parameter to the function,
+``test-demo-archivematica``, is t he accession ID. This is used to reference
+your Archive in the API.
 
-Run the Automation-Tools on Archivematica
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-You now need to log into the dashboard to run the Automation-Tools and
-start the processing of the files by Archivematica. Log into the
-Dashboard machine and do:
+Once the transfer is started, i.e. the files are copied to the transfer folder,
+you can run the automation tools:
 
 .. code:: bash
 
-   $ su archivematica
-   $ cd /home/archivematica/automation-tools/
-   $ ./run-automation-tools.sh
-   # ...
+   $ cd /etc/archivematica/automation-tools/
+   $ sudo -u archivematica ./transfer-script.sh
 
-The first time you run it, the processing will start, you can follow it
-on the web UI of Archivematica, first in the *Transfer* tab, and then in
-the *Ingest* tab, until the AIP is created and stored.
+The first time you run the automation tools, the processing will check the
+transfer folder for new transfers. Once the new transfer is located it will
+automatically start the transfer. You can check the progress of the transfer on
+the web UI of Archivematica, first in the *Transfer* tab, and then in the
+*Ingest* tab, until the AIP is created and stored.
 
-Then, if you run again the script ``run-automation-tools.sh``, it will
-see the current processing step and it **should** notify Invenio about
-it. If you run it once it is finished, it will say to Invenio that the
+Once the processing is completed you should run the automation-tools again. This
+tim the automation-tools will see that the processing is completed and send an
+update to Invenio. After this update the Invenio dashboard will show that the
 process is finished and the files are correctly archived.
 
-If this doesn’t work, you can update Invenio yourself with the following
-API.
-
-Eventually you can run the automation-tools via cron to fully automate 
-the process. How often you wish call the script can depend on your service.
-Choose the timescale that works for your service.
+The final step is to fully automate the automation-tools via cron. How often you
+wish to call the script can depends on your service. Choose the timescale that
+works best for your service.
 
 Invenio-Archivematica API
--------------------------
+=========================
 
-The Invenio-Archivematica module creates the following API end points.
-You need to note that all end points are protected:
+The Invenio-Archivematica module exposes the ``oais/archive`` endpoint. This
+end point can be used for querying the statis of Archive objects, update the
+status of an Archive object and downloading the AIP of archived objects.
 
--  you need an API key linked to your user to access it
--  the user needs to have the following permissions:
+Authentication
+--------------
+The ``oais/archive`` endpoint is protected. For authentication you need the
+following items:
 
-   -  archive-read
-   -  archive-write
+1. An API key for your Invenio user.
+2. The following permissions for your Invenio user: ``archive-read``,
+   ``archive-write``
 
-To access an API end point, you need to give your API key, either in the
-header or in the URL parameters. These 2 CURL requests are OK:
+The API token can be used in the Header or in the url arguments of the request.
+Each of these requests will get the status of the Archive object with id
+``$ACCESSION_ID`` using API token ``$TOKEN``:
 
--  ``curl -i -X GET -H "Content-Type:application/json" -H "Authorization:Bearer $TOKEN" "http://127.0.0.1/api/oais/archive/$ACCESSION_ID/"``
--  ``curl -i -X GET -H "Content-Type:application/json" "http://127.0.0.1/api/oais/archive/$ACCESSION_ID/?access_token=$TOKEN"``
+.. code:: bash
 
-As you can see, you access to an Archive object via its accession ID.
-This is the string you gave to the function ``oais_start_transfer``
-before, by default it is ``test-demo-archivematica``.
+   curl -i -X GET -H "Content-Type:application/json" -H "Authorization:Bearer $TOKEN" "http://127.0.0.1/api/oais/archive/$ACCESSION_ID/"
+   curl -i -X GET -H "Content-Type:application/json" "http://127.0.0.1/api/oais/archive/$ACCESSION_ID/?access_token=$TOKEN"
 
 GET information about Archive object
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can access information about an Archive object on this end point:
+------------------------------------
+You can access information about a specific Archive object on this end point:
 
 ::
 
@@ -269,50 +240,46 @@ It returns a JSON object with the following keys:
 -  sip_id
 -  status
 
-If it has an ``archivematica_id``, then you can add a JSON parameter to
-this request so Invenio-Archivematica will query Archivematica to know
-the read status. For instance, if the status returned is ``PROCESSING``,
-it may now be finished on Archivematica, but Invenio doesn’t know yet as
-the Automation-Tools hasn’t been run yet.
-
-Thus, you can run this query:
+If the object has an ``archivematica_id``, this means that there exists an
+Archivematica transfer for this object. To get the status of the Archivematica
+transfer add the ``realStatus`` flag to the request. This will force Invenio to
+report on the real Archivematica status, instead of relying on the status
+updates provided by the automation tools. The flag is passed as JSON parameter:
 
 .. code:: bash
 
    curl -H "Content-Type: application/json" -X GET -d '{"realStatus": true}' 'http://127.0.0.1/api/oais/archive/test-demo-archivematica/?access_token=$TOKEN'
 
-Note the ``realStatus`` parameter.
 
 Update information about Archive object
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can use this end point:
+---------------------------------------
+To update the status of an Archive object, either manual or via the
+automation-tools, you can use this end point:
 
 ::
 
    PATCH /api/oais/archive/$ACCESSION_ID/
 
-With this method, you can change the status and/or the archivematica ID.
-Just send a JSON dict with the informations you want to update:
+With this method, you can change the status and/or the archivematica ID. The
+request should contain a JSON dict with the information you want to update:
 
 .. code:: bash
 
    curl -H "Content-Type: application/json" -X PATCH -d '{"archivematica_id": "fa1391d1-1a78-493a-8e26-f10293706e37"}' 'http://127.0.0.1/api/oais/archive/test-demo-archivematica/?access_token=$TOKEN'
 
 Download an AIP
-~~~~~~~~~~~~~~~
-
-You can download an AIP from this end point:
+---------------
+After a succesfull transfer you might want to insepct the AIP. To download the
+AIP of a transfer with ``$ACCESSION_ID`` you can use the following endpoint:
 
 ::
 
    GET /api/oais/archive/$ACCESSION_ID/download/
 
 The AIP will be streamed to you from the storage. Note that the Archive
-**must** have a status ``REGISTERED``, so the process on the
-Archivematica machines is complete, and the AIP is correctly stored.
-
-Example:
+*must* have status ``REGISTERED``, so the process on the
+Archivematica machines is complete, and the AIP is correctly stored. To download
+the AIP create in the `previous section <Archiving a record_>`_ simply run:
 
 .. code:: bash
 
