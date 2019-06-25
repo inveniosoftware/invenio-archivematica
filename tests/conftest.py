@@ -115,6 +115,7 @@ def locations(db, instance_path):
     db.session.commit()
     return dict((loc.name, loc) for loc in [default, archive])
 
+
 @pytest.yield_fixture()
 def archive_fs(db, locations):
     """Fixture to check files generation."""
@@ -132,19 +133,18 @@ def sip(db, locations):
 
     file = FileInstance.create()
     file.set_contents(BytesIO(b('test')),
-                       default_location=locations['default'].uri)
+                      default_location=locations['default'].uri)
     f_sip = SIPFile(sip=sip, filepath='foobar.txt',
-                        file=file)
+                    file=file)
 
     for x in range(2):
         rec_uuid = uuid4()
         pid = PersistentIdentifier.create(
             'rec', str(x), status=PIDStatus.REGISTERED, object_type='rec',
             object_uuid=rec_uuid)
-        r_sip = RecordSIP(sip=sip, pid=pid) 
+        r_sip = RecordSIP(sip=sip, pid=pid)
 
     yield sip
-
 
 
 @pytest.yield_fixture()

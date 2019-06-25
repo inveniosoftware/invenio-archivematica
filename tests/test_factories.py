@@ -18,7 +18,6 @@ from invenio_pidstore.models import PersistentIdentifier, PIDStatus
 from invenio_sipstore.models import SIP, RecordSIP, SIPFile, SIPMetadata, \
     SIPMetadataType
 from six import BytesIO
-from werkzeug.utils import import_string
 
 from invenio_archivematica import factories
 from invenio_archivematica.models import Archive
@@ -65,17 +64,18 @@ def test_transfer_cp(app, db, locations):
     # SIPFile
     f = FileInstance.create()
     fcontent = b'weighted companion cube\n'
-    f.set_contents(BytesIO(fcontent), default_location=locations['archive'].uri)
+    f.set_contents(BytesIO(fcontent),
+                   default_location=locations['archive'].uri)
     sfile = SIPFile(sip=sip, file=f, filepath='portal.txt')
     db.session.add(sfile)
     db.session.commit()
 
-    #RecordSIP
+    # RecordSIP
     rec_uuid = uuid4()
     pid = PersistentIdentifier.create(
         'rec', '1', status=PIDStatus.REGISTERED, object_type='rec',
         object_uuid=rec_uuid)
-    r_sip = RecordSIP(sip=sip, pid=pid) 
+    r_sip = RecordSIP(sip=sip, pid=pid)
 
     # EXPORT
     factories.transfer_cp(sip.id, None)
@@ -115,17 +115,18 @@ def test_transfer_rsync(app, db, locations):
     # SIPFile
     f = FileInstance.create()
     fcontent = b'weighted companion cube\n'
-    f.set_contents(BytesIO(fcontent), default_location=locations['archive'].uri)
+    f.set_contents(BytesIO(fcontent),
+                   default_location=locations['archive'].uri)
     sfile = SIPFile(sip=sip, file=f, filepath='portal.txt')
     db.session.add(sfile)
     db.session.commit()
 
-    #RecordSIP
+    # RecordSIP
     rec_uuid = uuid4()
     pid = PersistentIdentifier.create(
         'rec', '1', status=PIDStatus.REGISTERED, object_type='rec',
         object_uuid=rec_uuid)
-    r_sip = RecordSIP(sip=sip, pid=pid) 
+    r_sip = RecordSIP(sip=sip, pid=pid)
 
     # EXPORT
     folder = path.join(locations['archive'].uri, 'lulz')

@@ -21,9 +21,11 @@ and :py:data:`invenio_archivematica.config.ARCHIVEMATICA_TRANSFER_FOLDER`
 for more information.
 """
 
-ARCHIVEMATICA_ACCESSION_ID_FACTORY = 'invenio_archivematica.factories.create_accession_id'
+ARCHIVEMATICA_ACCESSION_ID_FACTORY = \
+    'invenio_archivematica.factories.create_accession_id'
 
-ARCHIVEMATICA_METADATA_FACTORY = 'invenio_archivematica.archivers.ArchivematicaArchiver._generate_metadata'
+ARCHIVEMATICA_METADATA_FACTORY = \
+    'invenio_archivematica.archivers.ArchivematicaArchiver._generate_metadata'
 
 ARCHIVEMATICA_ISARCHIVABLE_FACTORY = 'invenio_archivematica.' \
                                      'factories.is_archivable_default'
