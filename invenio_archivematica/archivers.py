@@ -78,7 +78,7 @@ class ArchivematicaArchiver(BaseArchiver):
 
     def _write_lock_file(self, path):
         """Write a lock file under given path."""
-        content = b'this is a lock file - transfer of folder not finished yet'
+        content = 'this is a lock file - transfer of folder not finished yet'
         fs = self.storage_factory(fileurl=path,
                                   size=len(content),
                                   clean_dir=False)
