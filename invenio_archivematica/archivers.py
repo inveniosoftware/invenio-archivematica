@@ -11,20 +11,11 @@
 from __future__ import absolute_import, print_function, unicode_literals
 
 import csv
-import json
-from datetime import datetime
 
 from flask import current_app
-from invenio_db import db
-from invenio_sipstore.api import SIP
 from invenio_sipstore.archivers import BaseArchiver
-from invenio_sipstore.models import RecordSIP, SIPMetadata, SIPMetadataType, \
-    current_jsonschemas
-from jsonschema import validate
-from six import BytesIO, StringIO, b, string_types
+from six import BytesIO, StringIO
 from werkzeug.utils import import_string
-
-from .models import Archive
 
 
 class ArchivematicaArchiver(BaseArchiver):
@@ -38,23 +29,6 @@ class ArchivematicaArchiver(BaseArchiver):
         kwargs.setdefault('extra_dir', 'metadata')
         kwargs.setdefault('data_dir', 'data')
         super(ArchivematicaArchiver, self).__init__(*args, **kwargs)
-
-    @staticmethod
-    def _generate_metadata(sip):
-        """Generate metadata information for Archivematica Archiver.
-
-        This method can bee overwritten in the config variable
-        :py:data:`invenio_archivematica.config.ARCHIVEMATICA_TRANSFER_FACTORY .
-
-        :return: metadata information for archiver
-        :rtype: List[(str,str)]
-        """
-        metadata = [('filename', 'objects/data')]
-
-        rec_sips = RecordSIP.get_by_sip(sip_id=sip.id)
-        metadata.extend(('dc.identifier', str(r.pid_id)) for r in rec_sips)
-
-        return metadata
 
     def get_csv_file(self):
         """Create a csv file with generated_metadata."""

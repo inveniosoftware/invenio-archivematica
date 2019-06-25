@@ -14,12 +14,10 @@ from subprocess import call
 
 from flask import current_app
 from invenio_sipstore.api import SIP
-# from invenio_sipstore.archivers import BaseArchiver
 from invenio_sipstore.models import RecordSIP
 
+from invenio_archivematica.archivers import ArchivematicaArchiver
 from invenio_archivematica.models import Archive
-
-from .archivers import ArchivematicaArchiver
 
 
 def create_accession_id(ark):
@@ -33,6 +31,23 @@ def create_accession_id(ark):
     return "{service}-{uuid}".format(
         service=current_app.config['ARCHIVEMATICA_ORGANIZATION_NAME'],
         uuid=ark.sip.id)
+
+
+def generate_metadata(sip):
+    """Generate metadata information for Archivematica Archiver.
+
+    This method can bee overwritten in the config variable
+    :py:data:`invenio_archivematica.config.ARCHIVEMATICA_TRANSFER_FACTORY .
+
+    :return: metadata information for archiver
+    :rtype: List[(str,str)]
+    """
+    metadata = [('filename', 'objects/data')]
+
+    rec_sips = RecordSIP.get_by_sip(sip_id=sip.id)
+    metadata.extend(('dc.identifier', str(r.pid_id)) for r in rec_sips)
+
+    return metadata
 
 
 def transfer_cp(uuid, config):
