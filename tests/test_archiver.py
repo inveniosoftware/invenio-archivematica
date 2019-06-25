@@ -8,20 +8,9 @@
 
 """Test archiver."""
 
-import time
-from uuid import uuid4
-
-from fs.opener import opener
-from invenio_files_rest.models import FileInstance, Location
-from invenio_pidstore.models import PersistentIdentifier, PIDStatus
-from invenio_sipstore.models import SIP, RecordSIP, SIPFile
-from six import BytesIO, b
+from six import b
 
 from invenio_archivematica.archivers import ArchivematicaArchiver
-from invenio_archivematica.models import Archive, ArchiveStatus
-from invenio_archivematica.tasks import archive_new_sips, oais_fail_transfer, \
-    oais_finish_transfer, oais_process_aip, oais_process_transfer, \
-    oais_start_transfer
 
 
 def test_write_all_files(app, db, archive_fs, sip):
@@ -38,7 +27,7 @@ def test_write_all_files(app, db, archive_fs, sip):
     assert len(fs.listdir('metadata')) == 1
 
     with fs.open('data/foobar.txt') as fp:
-        assert fp.read() == b('test')
+        assert fp.read() == 'test'
 
     with fs.open('metadata/metadata.csv') as fp:
         assert fp.readline() == 'filename,dc.identifier,dc.identifier\n'
