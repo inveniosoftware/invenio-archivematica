@@ -55,7 +55,7 @@ install_requires = [
     'invenio-oauth2server>=1.0.3',
     'invenio-rest[cors]>=1.0.0',
     'invenio-sipstore>=1.0.0a7',
-    'webargs==4.4.1',   # TODO to be removed, see https://github.com/inveniosoftware/invenio-files-rest/pull/185#issue-246063980
+    'webargs==5.1.3',   # TODO to be removed, see https://github.com/inveniosoftware/invenio-files-rest/pull/185#issue-246063980
 ]
 
 packages = find_packages()
