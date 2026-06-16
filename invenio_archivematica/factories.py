@@ -9,8 +9,9 @@ from subprocess import call
 
 from flask import current_app
 from invenio_sipstore.api import SIP
-from invenio_sipstore.archivers import BaseArchiver
+from invenio_sipstore.models import RecordSIP
 
+from invenio_archivematica.archivers import ArchivematicaArchiver
 from invenio_archivematica.models import Archive
 
 
@@ -25,6 +26,23 @@ def create_accession_id(ark):
     return "{service}-{uuid}".format(
         service=current_app.config['ARCHIVEMATICA_ORGANIZATION_NAME'],
         uuid=ark.sip.id)
+
+
+def generate_metadata(sip):
+    """Generate metadata information for Archivematica Archiver.
+
+    This method can bee overwritten in the config variable
+    :py:data:`invenio_archivematica.config.ARCHIVEMATICA_TRANSFER_FACTORY .
+
+    :return: metadata information for archiver
+    :rtype: List[(str,str)]
+    """
+    metadata = [('filename', 'objects/data')]
+
+    rec_sips = RecordSIP.get_by_sip(sip_id=sip.id)
+    metadata.extend(('dc.identifier', str(r.pid_id)) for r in rec_sips)
+
+    return metadata
 
 
 def transfer_cp(uuid, config):
@@ -45,7 +63,7 @@ def transfer_cp(uuid, config):
         :py:data:`invenio_sipstore.config.SIPSTORE_ARCHIVER_LOCATION_NAME`
     """
     sip = SIP.get_sip(uuid)
-    archiver = BaseArchiver(sip)
+    archiver = ArchivematicaArchiver(sip)
     archiver.write_all_files()
     return 0
 
@@ -82,7 +100,7 @@ def transfer_rsync(uuid, config):
     sip = SIP.get_sip(uuid)
 
     # first we copy everything in a temp folder
-    archiver = BaseArchiver(sip)
+    archiver = ArchivematicaArchiver(sip)
     archiver.write_all_files()
 
     # then we rsync to the final dest
@@ -123,7 +141,7 @@ def transfer_demo(uuid, config):
     ark = Archive.get_from_sip(uuid)
 
     # we export it to the temp folder
-    archiver = BaseArchiver(sip)
+    archiver = ArchivematicaArchiver(sip)
     archiver.write_all_files()
 
     # we rsync it to the remote

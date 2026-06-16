@@ -14,7 +14,7 @@ from invenio_archivematica.tasks import archive_new_sips, oais_fail_transfer, \
     oais_start_transfer
 
 
-def test_oais_start_transfer(app, db, location):
+def test_oais_start_transfer(app, db, locations):
     """Test the oais_start_transfer function."""
     assert Archive.query.count() == 0
     # let's create a SIP
@@ -35,7 +35,7 @@ def test_oais_start_transfer(app, db, location):
     oais_start_transfer(sip.id, '1991')
     ark = Archive.get_from_sip(sip.id)
     assert Archive.query.count() == 1
-    assert ark.status == ArchiveStatus.FAILED
+    assert ark.status == ArchiveStatus.FAILED_TRANSFER
     assert ark.accession_id == '1991'
     assert ark.sip.archived is False
 
@@ -95,10 +95,10 @@ def test_oais_fail_transfer(db):
     oais_fail_transfer(sip.id)
     assert Archive.query.count() == 1
     ark = Archive.get_from_sip(sip.id)
-    assert ark.status == ArchiveStatus.FAILED
+    assert ark.status == ArchiveStatus.FAILED_TRANSFER
 
 
-def test_archive_new_sips(db, location):
+def test_archive_new_sips(db, locations):
     """Test the archive_new_sips function."""
     # we create 2 SIP
     sip1 = SIP.create()
